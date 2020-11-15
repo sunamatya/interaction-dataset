@@ -3,6 +3,22 @@
 
 DELTA_TIMESTAMP_MS = 100  # similar throughout the whole dataset
 
+class Traj:
+    def __init__(self, car):
+        # assert isinstance(id, int)
+        self.track_id = car.track_id
+        self.agent_type = car.agent_type
+        self.length = car.length
+        self.width = car.width
+        self.interaction = False
+        self.error = False
+        self.traj_bez = None
+
+    def __str__(self):
+        string = "Track: track_id=" + str(self.track_id) + ", agent_type=" + str(self.agent_type) + \
+               ", length=" + str(self.length) + ", width=" + str(self.width) + \
+               ", interaction=" + str(self.interaction) + ", bezier_point_count=" + str(len(self.traj_bez)) + \
+               "\n"
 
 class MotionState:
     def __init__(self, time_stamp_ms):

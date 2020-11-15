@@ -14,6 +14,12 @@ try:
 except ImportError:
     print("Could not import shutil, but it's needed to load the track files.")
 
+try:
+    print("Trying to import csv (for loading track files).")
+    import futures
+    print("ok")
+except ImportError:
+    print("Could not import futures, but it's needed to calculate the track files trajectories.")
 
 lanelet2_ok = False
 try:
