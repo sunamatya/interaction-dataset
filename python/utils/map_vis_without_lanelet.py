@@ -102,9 +102,11 @@ def draw_map_without_lanelet(filename, axes, lat_origin, lon_origin):
     unknown_linestring_types = list()
 
     # plot traj
+    '''
     bez = traj.calc_file_traj(0, "Scenario1")
     xvals, yvals = bezier.bezier_curve(bez, nTimes=1000)
     plt.plot(xvals,yvals)
+    '''
 
     for way in e.findall('way'):
         way_type = get_type(way)

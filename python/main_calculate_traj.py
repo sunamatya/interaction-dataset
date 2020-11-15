@@ -44,7 +44,7 @@ def get_traj_file_path(file_number, scenario_name):
     traj_file_ending = "_trajs.pickle"
     traj_file_name = scenario_dir + "/" + traj_file_prefix + str(file_number).zfill(3) + traj_file_ending
     if not os.path.isdir(traj_dir):
-        error_string += "Did not find traj file directory \"" + tracks_dir + "\"\n"
+        error_string += "Did not find traj file directory \"" + traj_dir + "\"\n"
     if not os.path.isdir(scenario_dir):
         error_string += "Did not find scenario directory \"" + scenario_dir + "\"\n"
     if error_string != "":
@@ -155,7 +155,6 @@ if __name__ == "__main__":
         raise IOError("You must specify a track number or --all. Type --help for help") 
     if args.all and args.track_file_number is not None:
         raise IOError("You cannot use -a/--all with a specific track number. Type --help for help") 
-    
     
     if args.all:    
         # iterate through all trajectory files
