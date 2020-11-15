@@ -8,7 +8,15 @@ import xml.etree.ElementTree as xml
 import pyproj
 import math
 
+import os, sys
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir)
+
+import main_calculate_traj as traj
 from utils import dict_utils
+from utils import bezier 
+
 
 
 class Point:
@@ -93,6 +101,11 @@ def draw_map_without_lanelet(filename, axes, lat_origin, lon_origin):
 
     unknown_linestring_types = list()
 
+    # plot traj
+    bez = traj.calc_file_traj(0, "Scenario1")
+    xvals, yvals = bezier.bezier_curve(bez, nTimes=1000)
+    plt.plot(xvals,yvals)
+
     for way in e.findall('way'):
         way_type = get_type(way)
         if way_type is None:
@@ -132,6 +145,9 @@ def draw_map_without_lanelet(filename, axes, lat_origin, lon_origin):
 
         x_list, y_list = get_x_y_lists(way, point_dict)
         plt.plot(x_list, y_list, **type_dict)
+
+
+       
 
     if len(unknown_linestring_types) != 0:
         print("Found the following unknown types, did not plot them: " + str(unknown_linestring_types))

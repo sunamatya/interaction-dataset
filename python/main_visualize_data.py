@@ -18,12 +18,13 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
+import main_calculate_traj as traj
 from utils import dataset_reader
 from utils import dataset_types
 from utils import map_vis_lanelet2
 from utils import tracks_vis
 from utils import dict_utils
-
+from utils import bezier
 
 def update_plot():
     global fig, timestamp, title_text, track_dictionary, patches_dict, text_dict, axes, pedestrian_dictionary
@@ -181,14 +182,22 @@ if __name__ == "__main__":
     button_play = FrameControlButton([0.6, 0.05, 0.1, 0.05], 'play')
     button_pause = FrameControlButton([0.71, 0.05, 0.1, 0.05], 'pause')
 
+    '''
+        CAN ADD BUTTONS HERE ------------------------------------------------------------------------------- BUTTONS
+    '''
+
     # storage for track visualization
     patches_dict = dict()
     text_dict = dict()
+
+    # Plot traj
+   
+    
 
     # visualize tracks
     print("Plotting...")
     timestamp = args.start_timestamp
     title_text = fig.suptitle("")
     playback_stopped = True
-    update_plot()
+    update_plot() 
     plt.show()
