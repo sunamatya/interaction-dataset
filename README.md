@@ -30,10 +30,10 @@
   * can be overriden by the using the `-r` flag
 ### Usage
 * to calculate a specific track file's trajectories
-  * run `./main_calculate_traj.py <scenario_name> <trackfile_number>`
+  * run `./main_calculate_traj.py <scenario_name> <trackfile_number>` from folder `python` to calculate trackfile trajectories
 * to calculate all trajectory files
-  * run `./main_calculate_traj.py <scenario_name> --all`
-  * run `./main_calculate_traj.py <scenario_name> --all -r`
+  * run `./main_calculate_traj.py <scenario_name> --all` from folder `python` to calculate scenario trajectories
+  * run `./main_calculate_traj.py <scenario_name> --all -r` from folder `python` to recalculate scenario trajectories
     * recalculate all scenario trajectory files
 
 ## Dataset Visualization
@@ -48,7 +48,14 @@
   * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)>` from folder `python` to visualize scenarios
 * if you only want to load and work with the track files
   * run `./main_load_track_file.py <tracks_filename>` from folder `python` to load tracks
-
+* if you want to show trajectories use the `--traj` flag
+  * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)> --traj`
+* if you want to restrict trajectories to cars between certain enterances/exists use --enter or --exit 
+  * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)> --traj --enter <int,int,...> --exit <int,int,...>
+  * omitting --enter or --exit sets the value to all entrances/exits.  
+  * ex. Show trajectories that only enter from entrance 3
+    * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)> --traj --enter 3
+  
 ### Test Usage without Dataset
 
 * to test the visualization

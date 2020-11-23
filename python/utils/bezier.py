@@ -8,6 +8,36 @@ import numpy as np
 def bernstein_basis(i, n, t):
         return sp.binom(n, i) * t**i * (1-t)**(n-i)
 
+def global_to_local(min, max, u):
+        return (u-min)/(max-min)
+
+def decasteljaus(bez, t):
+    '''
+        Given a set of control points and a t,
+        return the point on the bezier curve 
+        evaluated at t
+    '''
+
+    if t < 0 or t > 1:
+        print("Error -- invalid t: %.2f" % (t))
+        return []
+    
+    N = len(bez) - 1
+    if N == 0:
+        # base case: point on the line found
+        return bez
+    else:
+        bx      = np.array([b[0] for b in bez])
+        by      = np.array([b[1] for b in bez])
+        xcpt    = [((1-t)*bx[i] + t*bx[i+1]) for i in range(N)]
+        ycpt    = [((1-t)*by[i] + t*by[i+1]) for i in range(N)]
+        new_bez = [xcpt, ycpt]
+        new_bez = np.transpose(new_bez)
+        return decasteljaus(new_bez, t)
+    
+
+
+
 def bezier_curve(points, nTimes=1000):
     """
        Given a set of control points, return the

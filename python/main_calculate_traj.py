@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import sys
 import time
 import math
 import pickle
@@ -17,11 +18,49 @@ from utils import tracks_vis
 from utils import dict_utils
 from utils import bezier
 
-
+global SCENARIO
+SCENARIO = "test"
 Traj =  dataset_types.Traj
+MapMeta = dataset_types.MapMeta
+N1 = [[1009.6,1015.8],[1014.6,1021.9]]
+X4 = [[971.3,991.6],[978.2,997.0]]
+with open("../maps/metadata_dict.pickle", 'rb') as handle:
+    map_meta_dict = pickle.load(handle,fix_imports=True)
+
 
 def update_progress(progress, id):
     print("\r Curr_id: %s Total Progress: [%10s] %0.2f percent" % (str(id), ("#"*math.floor((progress*10))), progress*100), end='')
+
+def line_through_box(xpoints, ypoints, box):
+    # Needs major edits :: for testing purposes only
+    pt1 = box[0]
+    pt2 = box[1]
+
+    xRange = [min(pt1[0],pt2[0]), max(pt1[0],pt2[0])]
+    yRange = [min(pt1[1],pt2[1]), max(pt1[1],pt2[1])]
+
+    N=len(xpoints)
+    for i in range(N):
+        if (xRange[0] < xpoints[i] and xpoints[i] < xRange[1]):
+            if (yRange[0] < ypoints[i] and ypoints[i] < yRange[1]):
+                return True 
+
+    return False
+
+def get_boundary_ids(xpoints, ypoints, scenario_name):
+    meta = map_meta_dict[scenario_name]
+    entrance_id = None
+    exit_id = None
+    for i in range(len(meta.entrances)):
+        if line_through_box(xpoints, ypoints, meta.entrances[i]):
+            entrance_id = i
+            break
+    for j in range(len(meta.entrances)):
+        if line_through_box(xpoints, ypoints, meta.exits[j]):
+            exit_id = j
+            break
+    
+    return entrance_id, exit_id
 
 def get_track_file_path(file_number, scenario_name):
     # Return track file associated 
@@ -46,7 +85,13 @@ def get_traj_file_path(file_number, scenario_name):
     if not os.path.isdir(traj_dir):
         error_string += "Did not find traj file directory \"" + traj_dir + "\"\n"
     if not os.path.isdir(scenario_dir):
-        error_string += "Did not find scenario directory \"" + scenario_dir + "\"\n"
+        try:
+            print("Creating new scenario directory at: " + scenario_dir)
+            os.makedirs(scenario_dir)
+        except OSError as e:
+            if e.errno != errno.EXIST:
+                raise
+        #error_string += "Did not find scenario directory \"" + scenario_dir + "\"\n"
     if error_string != "":
         error_string += "Type --help for help."
         raise IOError(error_string)
@@ -72,7 +117,7 @@ def get_track_dict(file_number, scenario_name):
 
     return track_dictionary
 
-
+ 
 def calculate_traj(car):
     # worker to calculate trajectory
     xy_points   = [[],[]]
@@ -81,6 +126,7 @@ def calculate_traj(car):
         xy_points[0] = np.append(xy_points[0], car.motion_states[state].x)
         xy_points[1] = np.append(xy_points[1], car.motion_states[state].y)
     err, curr_traj.traj_bez = bezier.bezier_points(xy_points)
+    curr_traj.xvals, curr_traj.yvals = bezier.bezier_curve(curr_traj.traj_bez)
     if err < 0:
         curr_traj.error = True
     
@@ -116,6 +162,8 @@ def calc_file_traj(file_number, scenario_name, recalculate):
 
     for fut in futures:
         traj_Obj = fut.result()
+        traj_Obj.entrance_id, traj_Obj.exit_id = get_boundary_ids(traj_Obj.xvals, traj_Obj.yvals, scenario_name)
+        print("id: " + str(traj_Obj.track_id) +", N: "+str(traj_Obj.entrance_id)+", X: "+str(traj_Obj.exit_id)+"\n")
         traj_dict[traj_Obj.track_id] = traj_Obj
  
     tok          = time.time()
@@ -139,7 +187,6 @@ def save_traj_file(traj_dict, file_name):
 
 
 if __name__ == "__main__":
-
     # provide data to be visualized
     parser = argparse.ArgumentParser()
     parser.add_argument("scenario_name", type=str, help="Name of the scenario (to identify map and folder for track "
@@ -155,6 +202,7 @@ if __name__ == "__main__":
         raise IOError("You must specify a track number or --all. Type --help for help") 
     if args.all and args.track_file_number is not None:
         raise IOError("You cannot use -a/--all with a specific track number. Type --help for help") 
+    SCENARIO = args.scenario_name
     
     if args.all:    
         # iterate through all trajectory files

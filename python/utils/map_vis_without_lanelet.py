@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import xml.etree.ElementTree as xml
 import pyproj
 import math
+import pickle
+
 
 import os, sys
 currentdir = os.path.dirname(os.path.realpath(__file__))
@@ -16,6 +18,7 @@ sys.path.append(parentdir)
 import main_calculate_traj as traj
 from utils import dict_utils
 from utils import bezier 
+from utils import bez_vis
 
 
 
@@ -80,8 +83,7 @@ def set_visible_area(point_dict, axes):
     axes.set_ylim([min_y - 10, max_y + 10])
 
 
-def draw_map_without_lanelet(filename, axes, lat_origin, lon_origin):
-
+def draw_map_without_lanelet(filename, axes, lat_origin, lon_origin, scenario, track_file_num, traj_specifics):
     assert isinstance(axes, matplotlib.axes.Axes)
 
     axes.set_aspect('equal', adjustable='box')
@@ -101,12 +103,22 @@ def draw_map_without_lanelet(filename, axes, lat_origin, lon_origin):
 
     unknown_linestring_types = list()
 
-    # plot traj
-    '''
-    bez = traj.calc_file_traj(0, "Scenario1")
-    xvals, yvals = bezier.bezier_curve(bez, nTimes=1000)
-    plt.plot(xvals,yvals)
-    '''
+    # plot traj --enable this
+    if(track_file_num != None and scenario != None):
+        file_path = bez_vis.get_traj_file_path(track_file_num, scenario)
+        with open(file_path, 'rb') as handle:
+            traj_dict = pickle.load(handle)
+        enters = traj_specifics[0]
+        exits  = traj_specifics[1]
+        for car in traj_dict.values():
+            if not car.error:
+                if (car.entrance_id in enters) and (car.exit_id in exits):
+                    txvals, tyvals = bezier.bezier_curve(car.traj_bez)
+                    txvals = txvals[30:975]
+                    tyvals = tyvals[30:975]
+                    plt.plot(txvals, tyvals, "red", linewidth=5.0, alpha=.03)
+    
+
 
     for way in e.findall('way'):
         way_type = get_type(way)

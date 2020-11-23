@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-try:
+"""try:
     import lanelet2
     use_lanelet2_lib = True
 except:
@@ -11,10 +11,15 @@ except:
     print("Using visualization without lanelet2.")
     use_lanelet2_lib = False
     from utils import map_vis_without_lanelet
-
+"""
+# @ TODO implement with lanelet 
+#print("Using visualization without lanelet2.")
+use_lanelet2_lib = False
+from utils import map_vis_without_lanelet
 import argparse
 import os
 import time
+import pickle
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
@@ -25,6 +30,10 @@ from utils import map_vis_lanelet2
 from utils import tracks_vis
 from utils import dict_utils
 from utils import bezier
+
+with open("../maps/metadata_dict.pickle", 'rb') as handle:
+    map_meta_dict = pickle.load(handle,fix_imports=True)
+
 
 def update_plot():
     global fig, timestamp, title_text, track_dictionary, patches_dict, text_dict, axes, pedestrian_dictionary
@@ -79,7 +88,7 @@ class FrameControlButton(object):
             timestamp += 10*dataset_types.DELTA_TIMESTAMP_MS
         timestamp = min(timestamp, timestamp_max)
         timestamp = max(timestamp, timestamp_min)
-        update_plot()
+        update_plot() 
 
 
 if __name__ == "__main__":
@@ -91,6 +100,9 @@ if __name__ == "__main__":
     parser.add_argument("track_file_number", type=int, help="Number of the track file (int)", default=0, nargs="?")
     parser.add_argument("load_mode", type=str, help="Dataset to load (vehicle, pedestrian, or both)", default="both",
                         nargs="?")
+    parser.add_argument("--traj", action='store_true', help="Turn on trajectory visualization")
+    parser.add_argument("--enter", nargs="+", type=int, help="Specify which entrances specifically", default=[])
+    parser.add_argument("--exit", nargs="+", type=int,help="Specify which entrances specifically", default=[])
     parser.add_argument("--start_timestamp", type=int, nargs="?")
     args = parser.parse_args()
 
@@ -98,6 +110,10 @@ if __name__ == "__main__":
         raise IOError("You must specify a scenario. Type --help for help.")
     if args.load_mode != "vehicle" and args.load_mode != "pedestrian" and args.load_mode != "both":
         raise IOError("Invalid load command. Use 'vehicle', 'pedestrian', or 'both'")
+
+    # set globals
+    SCENARIO  = args.scenario_name
+    TRACK_NUM = args.track_file_number
 
     # check folders and files
     error_string = ""
@@ -130,6 +146,7 @@ if __name__ == "__main__":
         error_string += "Type --help for help."
         raise IOError(error_string)
 
+
     # create a figure
     fig, axes = plt.subplots(1, 1)
     fig.canvas.set_window_title("Interaction Dataset Visualization")
@@ -143,7 +160,21 @@ if __name__ == "__main__":
         laneletmap = lanelet2.io.load(lanelet_map_file, projector)
         map_vis_lanelet2.draw_lanelet_map(laneletmap, axes)
     else:
-        map_vis_without_lanelet.draw_map_without_lanelet(lanelet_map_file, axes, lat_origin, lon_origin)
+        if args.traj:
+
+            print(args.enter)
+            if args.enter == []:
+                enter = [i for i in range(len(map_meta_dict[args.scenario_name].entrances))]
+            else:
+                enter = args.enter
+            if args.exit == []:
+                exits = [i for i in range(len(map_meta_dict[args.scenario_name].exits))]
+            else:
+                exits = args.exit
+            specifics = [enter, exits]
+            map_vis_without_lanelet.draw_map_without_lanelet(lanelet_map_file, axes, lat_origin, lon_origin, args.scenario_name, args.track_file_number, specifics)
+        else:
+            map_vis_without_lanelet.draw_map_without_lanelet(lanelet_map_file, axes, lat_origin, lon_origin, None, None, None)
 
     # load the tracks
     print("Loading tracks...")
@@ -189,10 +220,6 @@ if __name__ == "__main__":
     # storage for track visualization
     patches_dict = dict()
     text_dict = dict()
-
-    # Plot traj
-   
-    
 
     # visualize tracks
     print("Plotting...")
