@@ -16,7 +16,11 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 import utils 
-from utils import 
+
+'''
+with open("../../maps/metadata_dict.pickle", 'rb') as handle:
+    map_meta_dict = pickle.load(handle,fix_imports=True)
+'''
 
 def get_traj_file_path(file_number, scenario_name):
     # Create save path for trajectory dict 
@@ -65,22 +69,29 @@ if __name__ == "__main__":
 
     file_path = get_traj_file_path(args.traj_file_number, args.scenario_name)
     traj_dict = load_trajs(file_path)   
-    # Need to check if car exists in track dict 
-    #bez = traj_dict[args.track_id].traj_bez
-    #xvals, yvals = bezier.bezier_curve(bez, nTimes=1000)
+    map_meta  = map_meta_dict[args.scenario_name]
 
+    # clean data 
+    if args.enter == []:
+        enter = [i for i in range(len(map_meta.entrances))]
+    else:
+        enter = args.enter
+    if args.exit == []:
+        exits = [i for i in range(len(map_meta.exits))]
+    else:
+        exits = args.exit
 
+    # Plot values 
     for car in traj_dict.values():
-        if not car.error:
-            if car.entrance_id == 1 and car.exit_id == 4:
-                txvals, tyvals = bezier.bezier_curve(car.traj_bez)
-                txvals = txvals[30:975]
-                tyvals = tyvals[30:975]
-                plt.plot(txvals, tyvals, "blue", linewidth=1.8, alpha=.08)
+            if not car.error:
+                if (car.entrance_id in enter) and (car.exit_id in exits):
+                    txvals, tyvals = bezier.bezier_curve(car.traj_bez)
+                    txvals = txvals[30:975]
+                    tyvals = tyvals[30:975]
+                    plt.plot(txvals, tyvals, "red", linewidth=1.8, alpha=.08)
 
-    print("YOU MAY NEED TO CHANGE XY LIMITS HERE---------------------------------")
-    plt.xlim(960,1050)
-    plt.ylim(970,1030)
+    plt.xlim(min(map_meta.xlim),max(map_meta.xlim))
+    plt.ylim(min(map_meta.ylim),max(map_meta.ylim))
     plt.show()
 
 

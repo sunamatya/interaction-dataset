@@ -31,9 +31,11 @@ from utils import tracks_vis
 from utils import dict_utils
 from utils import bezier
 
+'''
 with open("../maps/metadata_dict.pickle", 'rb') as handle:
     map_meta_dict = pickle.load(handle,fix_imports=True)
-
+'''
+map_meta_dict = None
 
 def update_plot():
     global fig, timestamp, title_text, track_dictionary, patches_dict, text_dict, axes, pedestrian_dictionary
@@ -161,8 +163,6 @@ if __name__ == "__main__":
         map_vis_lanelet2.draw_lanelet_map(laneletmap, axes)
     else:
         if args.traj:
-
-            print(args.enter)
             if args.enter == []:
                 enter = [i for i in range(len(map_meta_dict[args.scenario_name].entrances))]
             else:
