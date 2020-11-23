@@ -28,6 +28,9 @@
 * Calculated trajectories are saved in `trajectory_files/<scenario_name>/<vehicle_tracks_<XXX>_trajs.pickle>`
 *If the trajectory file already exists it will not be recalculated to minimize calculation time
   * can be overriden by the using the `-r` flag
+### Important
+  * Calculations use manually defined map metadata: initialize the metadata file
+    * run `./create_map_meta` from folder `python` before calculating/visualizing anything
 ### Usage
 * to calculate a specific track file's trajectories
   * run `./main_calculate_traj.py <scenario_name> <trackfile_number>` from folder `python` to calculate trackfile trajectories
