@@ -20,6 +20,22 @@
 * `math`, `numpy`,`time` and `matplotlib` for visualizing the scenarios
 * use `test_imports.py` to test whether you have all necessary packages installed
 
+## Dataset Trajectory Calculation
+* **SEE FOLDER STRUCTURE BEFORE CALCULATING TRAJECTORIES** : [link](doc/folder-structure.md)
+* Each scenario corresponds to a specific number (e.x. DR_CHN_Merging_ZS == `Scenario7`)
+  * copy/download the correct data into the correct folders according to [scenario-definitions.md](docs/scenario-definitions.md)
+* Trajectories for each car/scenario can be calculated using a polynomial fit
+* Calculated trajectories are saved in `trajectory_files/<scenario_name>/<vehicle_tracks_<XXX>_trajs.pickle>`
+*If the trajectory file already exists it will not be recalculated to minimize calculation time
+  * can be overriden by the using the `-r` flag
+### Usage
+* to calculate a specific track file's trajectories
+  * run `./main_calculate_traj.py <scenario_name> <trackfile_number>`
+* to calculate all trajectory files
+  * run `./main_calculate_traj.py <scenario_name> --all`
+  * run `./main_calculate_traj.py <scenario_name> --all -r`
+    * recalculate all scenario trajectory files
+
 ## Dataset Visualization
 
 ### Usage 
