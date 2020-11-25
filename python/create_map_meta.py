@@ -29,7 +29,7 @@ map_data.ylim           = bboxes.ylim1
 meta_dict["Scenario1"]  = map_data
 
 # Scenario2 = DR_DEU_Roundabout_OF
-map_data                = MapMeta(2)
+map_data                = dataset_types.MapMeta(2)
 map_data.scenario_name  = "DR_DEU_Roundabout_OF"
 map_data.enterances     = bboxes.N2 
 map_data.exits          = bboxes.X2
@@ -38,7 +38,7 @@ map_data.ylim           = bboxes.ylim2
 meta_dict["Scenario2"]  = map_data
 
 # Scenario3 = DR_USA_Roundabout_EP
-map_data                = MapMeta(3)
+map_data                = dataset_types.MapMeta(3)
 map_data.scenario_name  = "DR_USA_Roundabout_EP"
 map_data.enterances     = bboxes.N3 
 map_data.exits          = bboxes.X3
@@ -47,7 +47,7 @@ map_data.ylim           = bboxes.ylim3
 meta_dict["Scenario3"]  = map_data
 
 # Scenario4 = DR_USA_Roundabout_FT
-map_data                = MapMeta(4)
+map_data                = dataset_types.MapMeta(4)
 map_data.scenario_name  = "DR_USA_Roundabout_FT"
 map_data.enterances     = bboxes.N4
 map_data.exits          = bboxes.X4
@@ -56,7 +56,7 @@ map_data.ylim           = bboxes.ylim4
 meta_dict["Scenario4"]  = map_data
 
 # Scenario4 = DR_USA_Roundabout_SR
-map_data                = MapMeta(5)
+map_data                = dataset_types.MapMeta(5)
 map_data.scenario_name  = "DR_USA_Roundabout_SR"
 map_data.enterances     = bboxes.N5
 map_data.exits          = bboxes.X5
