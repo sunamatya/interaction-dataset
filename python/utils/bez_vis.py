@@ -17,10 +17,9 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 import utils 
 
-'''
-with open("../../maps/metadata_dict.pickle", 'rb') as handle:
-    map_meta_dict = pickle.load(handle,fix_imports=True)
-'''
+
+
+
 
 def get_traj_file_path(file_number, scenario_name):
     # Create save path for trajectory dict 
@@ -52,6 +51,9 @@ def load_trajs(file_name):
 
 
 if __name__ == "__main__":
+    with open("../../maps/metadata_dict.pickle", 'rb') as handle:
+        map_meta_dict = pickle.load(handle,fix_imports=True)
+        
     parser = argparse.ArgumentParser()
     parser.add_argument("scenario_name", type=str, help="Name of the scenario (to identify map and folder for track "
                         "files)", nargs="?")
