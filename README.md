@@ -54,11 +54,21 @@
 * if you want to show trajectories use the `--traj` flag
   * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)> --traj`
 * if you want to restrict trajectories to cars between certain enterances/exists use --enter or --exit 
-  * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)> --traj --enter <int,int,...> --exit <int,int,...>
+  * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)> --traj --enter <int,int,...> --exit <int,int,...>`
   * omitting --enter or --exit sets the value to all entrances/exits.  
   * ex. Show trajectories that only enter from entrance 3
-    * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)> --traj --enter 3
-  
+    * run `./main_visualize_data.py <scenario_name> <trackfile_number (default=0)> --traj --enter 3`
+
+### Trajectory Visualization
+
+* if you want to view ONLY the trajectories in more detail
+  * run `./bez_vis.py <scenario_name> <trackfile_number (default=0)>` from the `utils` folder
+* entrance and exit restrictions can be done using the same syntax as before
+  * run `./bez_vis.py <scenario_name> <trackfile_number (default=0)> --enter <int,int,...> --exit <int,int,...>`
+* if you want to view ONE car trajectory only use `--id`
+  * run `./bez_vis.py <scenario_name> <trackfile_number (default=0)> --id <car_id>`
+  * use the `--points` flag to show the original dataset points on top of the car's trajectory
+    * run `./bez_vis.py <scenario_name> <trackfile_number (default=0)> --id <car_id> --points`
 ### Test Usage without Dataset
 
 * to test the visualization

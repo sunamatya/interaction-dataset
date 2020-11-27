@@ -4,11 +4,13 @@ import argparse
 import os
 import sys
 import pickle
+import numpy as np
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 import pickle 
 from utils import bezier
+from utils import dataset_reader
 import inspect
 import matplotlib.pyplot as plt
 
@@ -19,7 +21,26 @@ import utils
 
 
 
+def get_track_file_path(file_number, scenario_name):
+    # Create save path for trackectory dict 
+    error_string = ""
+    if __name__ == "__main__":
+        track_dir = "../../recorded_trackfiles"
+    else:
+        track_dir = "../recorded_trackfiles"
+    scenario_dir = track_dir + "/" + scenario_name
+    track_file_prefix = "vehicle_tracks_"
+    track_file_ending = ".csv"
+    track_file_name = scenario_dir + "/" + track_file_prefix + str(file_number).zfill(3) + track_file_ending
+    if not os.path.isdir(track_dir):
+        error_string += "Did not find track file directory \"" + track_dir + "\"\n"
+    if not os.path.isdir(scenario_dir):
+        error_string += "Did not find scenario directory \"" + scenario_dir + "\"\n"
+    if error_string != "":
+        error_string += "Type --help for help."
+        raise IOError(error_string)
 
+    return track_file_name
 
 def get_traj_file_path(file_number, scenario_name):
     # Create save path for trajectory dict 
@@ -28,7 +49,6 @@ def get_traj_file_path(file_number, scenario_name):
         traj_dir = "../../trajectory_files"
     else:
         traj_dir = "../trajectory_files"
-    maps_dir = "../maps"
     scenario_dir = traj_dir + "/" + scenario_name
     traj_file_prefix = "vehicle_tracks_"
     traj_file_ending = "_trajs.pickle"
@@ -58,8 +78,9 @@ if __name__ == "__main__":
     parser.add_argument("scenario_name", type=str, help="Name of the scenario (to identify map and folder for track "
                         "files)", nargs="?")
     parser.add_argument("traj_file_number", type=int, help="Number of the track file (int)", nargs="?")
-    #parser.add_argument("track_id", type=int, help="Number of the track file (int)", default=0, nargs="?")
-    parser.add_argument('-a', '--all', action='store_true', help="Iterate through all track files")
+    parser.add_argument("--id", type=int, help="Number of the track file (int)", default=[-1], nargs=1)
+    parser.add_argument('-p',"--points", action='store_true', help="Show original points from the dataset")
+    parser.add_argument('-a', '--all', action='store_true', help="Iterate through all track files") # not implemented
     parser.add_argument("--enter", nargs="+", type=int, help="Specify which entrances specifically", default=[])
     parser.add_argument("--exit", nargs="+", type=int,help="Specify which entrances specifically", default=[])
     args = parser.parse_args()
@@ -73,25 +94,56 @@ if __name__ == "__main__":
     traj_dict = load_trajs(file_path)   
     map_meta  = map_meta_dict[args.scenario_name]
 
-    # clean data 
-    if args.enter == []:
-        enter = [i for i in range(len(map_meta.entrances))]
+    if args.id[0] < 0:
+        # Multiple trajectories
+        # clean data 
+        if args.enter == []:
+            enter = [i for i in range(len(map_meta.entrances))]
+        else:
+            enter = args.enter
+        if args.exit == []:
+            exits = [i for i in range(len(map_meta.exits))]
+        else:
+            exits = args.exit
+        # Plot values 
+        for car in traj_dict.values():
+                if not car.error:
+                    if (car.entrance_id in enter) and (car.exit_id in exits):
+                        txvals, tyvals = bezier.bezier_curve(car.traj_bez)
+                        txvals = txvals[30:975]
+                        tyvals = tyvals[30:975]
+                        plt.plot(txvals, tyvals, "red", linewidth=1.8, alpha=.08)
     else:
-        enter = args.enter
-    if args.exit == []:
-        exits = [i for i in range(len(map_meta.exits))]
-    else:
-        exits = args.exit
+        print("plotting car %d trajectory..." % (args.id[0]))
+        # Show single trajectory with one
+        if args.points:
+            # load original data and plot points
+            print("loading original points...")
+            xy_points= [[],[]]
+            track_file_name = get_track_file_path(args.traj_file_number, args.scenario_name)
+            track_dictionary = dataset_reader.read_tracks(track_file_name)
 
-    # Plot values 
-    for car in traj_dict.values():
-            if not car.error:
-                if (car.entrance_id in enter) and (car.exit_id in exits):
-                    txvals, tyvals = bezier.bezier_curve(car.traj_bez)
-                    txvals = txvals[30:975]
-                    tyvals = tyvals[30:975]
-                    plt.plot(txvals, tyvals, "red", linewidth=1.8, alpha=.08)
+            try:
+                car = track_dictionary[args.id[0]]
+            except KeyError:
+                print("Error: Invalid car id -- car %d not found" % (args.id[0])) 
+                exit()
 
+            for state in car.motion_states:
+                xy_points[0] = np.append(xy_points[0], car.motion_states[state].x)
+                xy_points[1] = np.append(xy_points[1], car.motion_states[state].y)
+            plt.plot(xy_points[0],xy_points[1],'bo', markersize=2)
+        
+        # plot car traj
+        try:
+            txvals, tyvals = bezier.bezier_curve(traj_dict[args.id[0]].traj_bez)
+            txvals         = txvals[30:975]
+            tyvals         = tyvals[30:975]
+        except KeyError:
+            print("Error: Invalid car id -- car %d not found" % (args.id[0])) 
+            exit()
+        plt.plot(txvals, tyvals, "red", linewidth=1.8)
+    
     plt.xlim(min(map_meta.xlim),max(map_meta.xlim))
     plt.ylim(min(map_meta.ylim),max(map_meta.ylim))
     plt.show()
