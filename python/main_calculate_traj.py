@@ -11,6 +11,7 @@ import concurrent.futures
 import matplotlib.pyplot as plt
 import numpy as np
 
+from interaction_calculations import calculate_interactions
 from utils import dataset_reader
 from utils import dataset_types
 from utils import map_vis_lanelet2
@@ -55,7 +56,7 @@ def get_boundary_ids(xpoints, ypoints, scenario_name):
         if line_through_box(xpoints, ypoints, meta.entrances[i]):
             entrance_id = i
             break
-    for j in range(len(meta.entrances)):
+    for j in range(len(meta.exits)):
         if line_through_box(xpoints, ypoints, meta.exits[j]):
             exit_id = j
             break
@@ -121,10 +122,14 @@ def get_track_dict(file_number, scenario_name):
 def calculate_traj(car):
     # worker to calculate trajectory
     xy_points   = [[],[]]
-    curr_traj = Traj(car)
+    velocities  = [[],[]]
+    curr_traj   = Traj(car)
     for state in car.motion_states:
-        xy_points[0] = np.append(xy_points[0], car.motion_states[state].x)
-        xy_points[1] = np.append(xy_points[1], car.motion_states[state].y)
+        xy_points[0]  = np.append(xy_points[0], car.motion_states[state].x)
+        xy_points[1]  = np.append(xy_points[1], car.motion_states[state].y)
+        curr_traj.vxvals = np.append(curr_traj.vxvals, car.motion_states[state].vx)
+        curr_traj.vyvals = np.append(curr_traj.vyvals, car.motion_states[state].vy)
+
     err, curr_traj.traj_bez = bezier.bezier_points(xy_points)
     curr_traj.xvals, curr_traj.yvals = bezier.bezier_curve(curr_traj.traj_bez)
     if err < 0:
@@ -163,9 +168,12 @@ def calc_file_traj(file_number, scenario_name, recalculate):
     for fut in futures:
         traj_Obj = fut.result()
         traj_Obj.entrance_id, traj_Obj.exit_id = get_boundary_ids(traj_Obj.xvals, traj_Obj.yvals, scenario_name)
-        print("id: " + str(traj_Obj.track_id) +", N: "+str(traj_Obj.entrance_id)+", X: "+str(traj_Obj.exit_id)+"\n")
+        #print("id: " + str(traj_Obj.track_id) +", N: "+str(traj_Obj.entrance_id)+", X: "+str(traj_Obj.exit_id)+"\n")
         traj_dict[traj_Obj.track_id] = traj_Obj
- 
+    
+    print("Calculating Interactions")
+    traj_dict = calculate_interactions(track_dict, traj_dict)
+
     tok          = time.time()
     elapsed_time = tok - tik
     print("Trajectory calculation complete in %f seconds" % (elapsed_time))
