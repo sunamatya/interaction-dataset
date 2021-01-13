@@ -19,13 +19,20 @@ class Traj:
         self.agent_type = car.agent_type
         self.length = car.length
         self.width = car.width
+        self.time_stamp_ms_first = car.time_stamp_ms_first
+        self.time_stamp_ms_last = car.time_stamp_ms_last
         self.interaction = False
         self.error = False
         self.entrance_id = None
         self.exit_id = None 
         self.traj_bez = None
-        self.xvals = None
-        self.yvals = None
+        self.bez_xvals = None
+        self.bez_yvals = None
+        self.x_vals = []
+        self.y_vals = []
+        self.vx_vals = []
+        self.vy_vals = []
+        self.psi_vals = []
         # self.dx   --deviation in x    
 
     def __str__(self):

@@ -55,7 +55,7 @@ def bezier_curve(points, nTimes=1000):
     nPoints = len(points)
     xPoints = np.array([p[0] for p in points])
     yPoints = np.array([p[1] for p in points])
-
+    
     t = np.linspace(0.0, 1.0, nTimes)
 
     polynomial_array = np.array([ bernstein_basis(i, nPoints-1, t) for i in range(0, nPoints)   ])
@@ -73,6 +73,7 @@ def bezier_points(xy_points_T,degree=3):
         xy_points_T is a 2D array where xy_points_T[0] is x values 
                                     and xy_points_T[1] is y values
     '''
+
     assert len(xy_points_T)==2
     assert len(xy_points_T[0]) == len(xy_points_T[1])
     err = 1
@@ -88,7 +89,8 @@ def bezier_points(xy_points_T,degree=3):
         lhs = np.matmul(np.transpose(M), M)
         rhs = np.matmul(np.transpose(M),P)
         bez = np.linalg.solve(lhs, rhs)
-    except:
+    except Exception as e:
+        print(e)
         err = -1
         bez = []
 
