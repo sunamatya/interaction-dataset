@@ -48,8 +48,8 @@ def generate_demo_traj():
         big_psi_traj.append(np.array(psi_traj))
 
         #
-        # plt.figure(1)
-        # plt.plot(x_traj, y_traj)
+        plt.figure(1)
+        plt.plot(x_traj, y_traj)
         x = 0
         y = 0
         theta = 0
@@ -74,7 +74,7 @@ def generate_demo_traj():
             vy_traj.append(y_dot)
             psi_traj.append(theta)
 
-        # plt.plot(x_traj, y_traj)
+        plt.plot(x_traj, y_traj)
         big_x_traj.append(np.array(x_traj))
         big_y_traj.append(np.array(y_traj))
         big_vx_traj.append(np.array(vx_traj))
@@ -82,8 +82,8 @@ def generate_demo_traj():
         big_psi_traj.append(np.array(psi_traj))
 
     # #
-    # plt.title('tester_plot')
-    # plt.show()
+    plt.title('tester_plot')
+    plt.show()
 
 
     return(big_x_traj, big_y_traj, big_vx_traj, big_vy_traj, big_psi_traj)
