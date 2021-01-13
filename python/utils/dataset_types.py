@@ -26,10 +26,13 @@ class Traj:
         self.entrance_id = None
         self.exit_id = None 
         self.traj_bez = None
-        self.xvals = None
-        self.yvals = None
-        self.vxvals = []
-        self.vyvals = []
+        self.bez_xvals = None
+        self.bez_yvals = None
+        self.x_vals = []
+        self.y_vals = []
+        self.vx_vals = []
+        self.vy_vals = []
+        self.psi_vals = []
         # self.dx   --deviation in x    
 
     def __str__(self):

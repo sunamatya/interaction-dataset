@@ -117,10 +117,10 @@ def draw_map_without_lanelet(filename, axes, lat_origin, lon_origin, scenario, t
                     txvals = txvals[30:975]
                     tyvals = tyvals[30:975]
                     if car.interaction:
-                        print("Interaction for car: %d" % (car.track_id))
+                        #print("Interaction for car: %d" % (car.track_id))
                         plt.plot(txvals, tyvals, "red", linewidth=5.0, alpha=.03)
                     else:
-                        print("No interaction for car: %d" % (car.track_id))
+                        print("No interaction for car: %d --enter: %d --exit: %d" % (car.track_id, car.entrance_id, car.exit_id))
                         #plt.plot(txvals, tyvals, "blue", linewidth=5.0, alpha=.03)
 
 

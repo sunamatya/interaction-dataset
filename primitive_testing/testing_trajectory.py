@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 
 import sys
 import csv
-sys.path.append('C:/Users/samatya.ASURITE/PycharmProjects/interaction-dataset/data')
+#sys.path.append('C:/Users/samatya.ASURITE/PycharmProjects/interaction-dataset/data')        --Sunny specific
+# C:/Users/samatya.ASURITE/PycharmProjects/interaction-dataset
 def make_demonstrations():
     name = 'vehicle_tracks_000.csv'
-    with open('C:/Users/samatya.ASURITE/PycharmProjects/interaction-dataset/data/' + name, 'r') as csvfile:
+    with open('../data/' + name, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         x = []
         y = []
@@ -58,6 +59,10 @@ def get_Ridge_Refression (X, Y, alpha):
     w = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X) + alpha * I), X.T), Y)
     return w
 
+'''====================================================
+    MAIN
+===================================================='''
+
 #pulls one state vector
 x, y, vx, vy, psi= make_demonstrations()
 plot_figure = False
@@ -78,7 +83,7 @@ if plot_figure:
     plt.plot(psi)
     plt.title('angle')
     plt.show()
-
+     
 #initilization
 #data_mean = np.array[]
 
@@ -146,7 +151,7 @@ for demo_idx in range(1, len(x)):
     dp_emax = 8.0
     do_Mmax = np.pi
 
-    # initiate segmentation library
+    # initiate segmentation library -> @TODO?
 
     if (d_ep>dp_emax and d_mo>do_Mmax):
         #dictionary to save data
@@ -160,6 +165,8 @@ for demo_idx in range(1, len(x)):
         data_covar = np.zeros((5, 5))
         data_mean = state
         current_range_start = demo_idx+1
+# --- end for
+
 if current_range_start< demo_idx:
     cluster_info = {}
     cluster_info["data_range"] = [current_range_start, demo_idx]

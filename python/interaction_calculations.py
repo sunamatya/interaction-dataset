@@ -17,12 +17,14 @@ def init_active_cars(active_cars, iter, timestamp_min, track_dictionary):
             active_cars.append(track)
 
 def distance_formula(car1, car2, timestamp):
-    x1 = car1.motion_states[timestamp].x
-    y1 = car1.motion_states[timestamp].y
-    x2 = car2.motion_states[timestamp].x
-    y2 = car2.motion_states[timestamp].y
-    return np.sqrt((x1-x2)**2+(y1-y2)**2)
-
+    try:
+        x1 = car1.motion_states[timestamp].x
+        y1 = car1.motion_states[timestamp].y
+        x2 = car2.motion_states[timestamp].x
+        y2 = car2.motion_states[timestamp].y
+        return np.sqrt((x1-x2)**2+(y1-y2)**2)
+    except Exception as e:
+        return 999999999
 
 def update_active_cars(active_cars, curr_car_id, car_iter, track_dictionary,timestamp):
     car = track_dictionary[curr_car_id[0]]
