@@ -11,6 +11,7 @@ import concurrent.futures
 import matplotlib.pyplot as plt
 import numpy as np
 
+from interaction_calculations import calculate_interactions
 from utils import dataset_reader
 from utils import dataset_types
 from utils import map_vis_lanelet2
@@ -55,7 +56,7 @@ def get_boundary_ids(xpoints, ypoints, scenario_name):
         if line_through_box(xpoints, ypoints, meta.entrances[i]):
             entrance_id = i
             break
-    for j in range(len(meta.entrances)):
+    for j in range(len(meta.exits)):
         if line_through_box(xpoints, ypoints, meta.exits[j]):
             exit_id = j
             break
@@ -121,12 +122,17 @@ def get_track_dict(file_number, scenario_name):
 def calculate_traj(car):
     # worker to calculate trajectory
     xy_points   = [[],[]]
-    curr_traj = Traj(car)
+    velocities  = [[],[]]
+    curr_traj   = Traj(car)
     for state in car.motion_states:
-        xy_points[0] = np.append(xy_points[0], car.motion_states[state].x)
-        xy_points[1] = np.append(xy_points[1], car.motion_states[state].y)
-    err, curr_traj.traj_bez = bezier.bezier_points(xy_points)
-    curr_traj.xvals, curr_traj.yvals = bezier.bezier_curve(curr_traj.traj_bez)
+        curr_traj.x_vals = np.append(curr_traj.x_vals, car.motion_states[state].x)
+        curr_traj.y_vals = np.append(curr_traj.y_vals, car.motion_states[state].y)
+        curr_traj.vx_vals = np.append(curr_traj.vx_vals, car.motion_states[state].vx)
+        curr_traj.vy_vals = np.append(curr_traj.vy_vals, car.motion_states[state].vy)
+        curr_traj.psi_vals = np.append(curr_traj.vy_vals, car.motion_states[state].psi_rad)
+
+    err, curr_traj.traj_bez = bezier.bezier_points([curr_traj.x_vals, curr_traj.y_vals])
+    curr_traj.bez_xvals, curr_traj.bez_yvals = bezier.bezier_curve(curr_traj.traj_bez)
     if err < 0:
         curr_traj.error = True
     
@@ -162,9 +168,12 @@ def calc_file_traj(file_number, scenario_name, recalculate):
 
     for fut in futures:
         traj_Obj = fut.result()
-        traj_Obj.entrance_id, traj_Obj.exit_id = get_boundary_ids(traj_Obj.xvals, traj_Obj.yvals, scenario_name)
-        print("id: " + str(traj_Obj.track_id) +", N: "+str(traj_Obj.entrance_id)+", X: "+str(traj_Obj.exit_id)+"\n")
+        traj_Obj.entrance_id, traj_Obj.exit_id = get_boundary_ids(traj_Obj.bez_xvals, traj_Obj.bez_yvals, scenario_name)
+        #print("id: " + str(traj_Obj.track_id) +", N: "+str(traj_Obj.entrance_id)+", X: "+str(traj_Obj.exit_id)+"\n")
         traj_dict[traj_Obj.track_id] = traj_Obj
+    
+    print("Calculating Interactions")
+    traj_dict = calculate_interactions(track_dict, traj_dict)
  
     tok          = time.time()
     elapsed_time = tok - tik
@@ -216,5 +225,4 @@ if __name__ == "__main__":
         #calculate specific traj file
         calc_file_traj(args.track_file_number, args.scenario_name, args.recalculate)
 
-   
 

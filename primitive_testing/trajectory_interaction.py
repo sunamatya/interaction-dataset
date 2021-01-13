@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from example_tester import generate_demo_traj
+from example_tester import extract_dataset_traj
 import scipy.interpolate
 import sys
 import csv
@@ -71,13 +72,14 @@ def get_Ridge_Refression (X, Y, alpha):
 
 #pulls one state vector
 #x, y, vx, vy, psi= make_demonstrations(17)
-all_x, all_y, all_vx, all_vy, all_psi= generate_demo_traj()
+all_x, all_y, all_vx, all_vy, all_psi= extract_dataset_traj("Scenario4", False, [3], [5], data_lim=100)
+#all_x, all_y, all_vx, all_vy, all_psi= generate_demo_traj()
 indices = np.arange(len(all_x))
 np.random.shuffle(indices)
 train_x, train_y, train_vx, train_vy, train_psi = [], [], [], [], []
 test_x, test_y, test_vx, test_vy, test_psi = [], [], [], [], []
 for i in range(len(indices)):
-    if i < len(indices)*0.7:
+    if i < len(indices)*0.9:
         train_x.append(all_x[indices[i]])
         train_y.append(all_y[indices[i]])
         train_vx.append(all_vx[indices[i]])
@@ -358,6 +360,7 @@ mean_pos_ww = list_pos_ww.mean(0)
 sigma_pos_ww_t = list_pos_ww.var(0)
 sigma_pos_ww = np.identity(sigma_pos_ww_t.shape[0])
 
+'''                                                                # --- COMMENTED OUT NEGATIVE CLUSTERS
 list_neg_ww = np.array(list_neg_ww)
 # Get mean and sigma for weights
 mean_neg_ww = list_neg_ww.mean(0)
@@ -365,7 +368,7 @@ sigma_neg_ww_t = list_neg_ww.var(0)
 sigma_neg_ww = np.identity(sigma_neg_ww_t.shape[0])
 # print("mean: ", mean_pos_ww.shape)
 # print("sigma: ", sigma_pos_ww.shape)
-
+'''
 
 # inf_traj = np.dot(big_psi, mean_ww)
 # inf_x = inf_traj[0:T*D:D]
@@ -623,8 +626,9 @@ for i in range (len(seg_ranges_obv)):
         #check is positive or negative class
         if current_segment[-D]>0 :
             inferred_traj, mean_pos_ww, sigma_pos_ww = reconstruct_seg(current_segment,mean_pos_ww, sigma_pos_ww)
-        else:
-            inferred_traj, mean_neg_ww, sigma_neg_ww = reconstruct_seg(current_segment, mean_neg_ww, sigma_neg_ww)
+        #else:
+            #inferred_traj, mean_neg_ww, sigma_neg_ww = reconstruct_seg(current_segment, mean_neg_ww, sigma_neg_ww)                    # --- COMMENTED OUT NEGATIVE CLUSTERING
+
 
         current_inferred_traj.append(inferred_traj)
 
@@ -634,10 +638,11 @@ for i in range (len(seg_ranges_obv)):
         observation_y = current_segment[1:current_segment.shape[0]:D]
         plt.plot(observation_x, observation_y, "--", color="#ff6a6a", label="Observation", linewidth=2.0)
         plt.plot(inferred_x, inferred_y, ".", color="b", label="Inferred", linewidth=2.0)
-
+        
+    plt.show()
     inferred_test_traj.append(current_inferred_traj)
-plt.legend()
-plt.show()
+#plt.legend()
+#plt.show()
 
 
 

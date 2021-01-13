@@ -13,6 +13,7 @@ from utils import bezier
 from utils import dataset_reader
 import inspect
 import matplotlib.pyplot as plt
+from matplotlib import cm
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--all', action='store_true', help="Iterate through all track files") # not implemented
     parser.add_argument("--enter", nargs="+", type=int, help="Specify which entrances specifically", default=[])
     parser.add_argument("--exit", nargs="+", type=int,help="Specify which entrances specifically", default=[])
+    parser.add_argument('-v',"--velocities", action='store_true', help="plot velocities")
     args = parser.parse_args()
 
     if args.scenario_name is None:
@@ -109,10 +111,31 @@ if __name__ == "__main__":
         for car in traj_dict.values():
                 if not car.error:
                     if (car.entrance_id in enter) and (car.exit_id in exits):
-                        txvals, tyvals = bezier.bezier_curve(car.traj_bez)
-                        txvals = txvals[30:975]
-                        tyvals = tyvals[30:975]
-                        plt.plot(txvals, tyvals, "red", linewidth=1.8, alpha=.08)
+                        
+                        if args.velocities:
+                            v = [np.sqrt(car.vxvals[i]**2+car.vyvals[i]**2) for i in range(len(car.vxvals))]
+                            xy_points= [[],[]]
+                            track_file_name = get_track_file_path(args.traj_file_number, args.scenario_name)
+                            track_dictionary = dataset_reader.read_tracks(track_file_name)
+                            try:
+                                car_d = track_dictionary[car.track_id]
+                            except KeyError:
+                                print("Error: Invalid car id -- car %d not found" % (car.track_id)) 
+                                exit()
+
+                            for state in car_d.motion_states:
+                                xy_points[0] = np.append(xy_points[0], car_d.motion_states[state].x)
+                                xy_points[1] = np.append(xy_points[1], car_d.motion_states[state].y)
+                            print("=======  Car id: %d =======" %(car.track_id))
+                            print(v)
+                            plt.scatter(xy_points[0], xy_points[1], c=cm.hot(np.divide(v,12)), edgecolors='none', linewidth=1.8, alpha=.08)
+
+                        else:    
+                            txvals, tyvals = bezier.bezier_curve(car.traj_bez)
+                            txvals = txvals[30:975]
+                            tyvals = tyvals[30:975]
+                            plt.plot(txvals, tyvals, "red", linewidth=1.8, alpha=.08)
+                        
     else:
         print("plotting car %d trajectory..." % (args.id[0]))
         # Show single trajectory with one
