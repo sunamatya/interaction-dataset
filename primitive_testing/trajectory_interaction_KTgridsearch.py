@@ -13,8 +13,10 @@ np.random.seed(123)
 # constants for the primitive
 # T = 20 #number of timesteps
 # K = 8 # number of basis function acc to the paper
-T = 100 #number of timesteps
-K = 25 # number of basis function acc to the paper
+#T = 100 #number of timesteps
+#K = 25 # number of basis function acc to the paper
+Ts = [20, 40, 60, 80, 100]
+Ks = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 D = 5 # dimension of data
 def make_demonstrations(vehicle_no):
     name = 'vehicle_tracks_000.csv'
@@ -238,16 +240,17 @@ def state_segmentation(x, y, psi, vx, vy, plot = True, seg_whole = False):
 
 seg_ranges = []
 for i in range(len(train_x)):
-     seg_ranges.append(state_segmentation(train_x[i], train_y[i], train_vx[i], train_vy[i], train_psi[i], plot=False, seg_whole= False))
+     seg_ranges.append(state_segmentation(train_x[i], train_y[i], train_psi[i],  train_vx[i], train_vy[i], plot=False, seg_whole= False))
 
 
 #algorithm 2
-dk = np.linspace(0,1,K)
-dt = np.linspace(0,1,T)
+# Ts = np.linspace(20,100, 5)
+# Ks = np.linspace(5,100, 20)
+
 #primitive_mean = dt.mean() #1
-#primitive_variance = 0.2
+primitive_variance = 0.2
 #primitive_variance = 5
-primitive_variance = np.linspace(0.2,10, 50)
+#primitive_variance = np.linspace(0.2,10, 50)
 # list_psi = []
 #list_traj = []
 #list_ww = []
@@ -255,30 +258,40 @@ primitive_variance = np.linspace(0.2,10, 50)
 
 # equation 12 and 13
 big_psi_list = []
-for jj in range(primitive_variance.shape[0]):
-    big_psi = np.zeros((D * T, D * K))
+kt_index = []
+#for jj in range(primitive_variance.shape[0]):
 
-    for ii in range(T):  # number of sequence
-        for kk in range(K):
-            b_t_x = get_GausRBF(dt[ii], dk[kk], primitive_variance[jj], D)
-            # b_t_y = get_GausRBF(z_y[ii], primitive_mean, primitive_variance, D)
-            # b_t_o = get_GausRBF(z_psi[ii], primitive_mean, primitive_variance, D)
-            # b_t_vx = get_GausRBF(z_vx[ii], primitive_mean, primitive_variance, D)
-            # b_t_vy = get_GausRBF(z_vy[ii], primitive_mean, primitive_variance, D)
-            small_psi = np.identity(D)
-            # np.fill_diagonal(small_psi, [b_t_x, b_t_y, b_t_o, b_t_vx, b_t_vy])
-            np.fill_diagonal(small_psi, [b_t_x, b_t_x, b_t_x, b_t_x, b_t_x])
-            # np.fill_diagonal(small_psi, [b_t_x])
-            big_psi[ii * D:(ii + 1) * D, kk * D:(kk + 1) * D] = np.copy(small_psi)
-    #print("Big Psi shape: ", big_psi.shape)
-    big_psi_list.append(np.copy(big_psi))
+for rbfs in range(len(Ks)):
+    for tt in range(len(Ts)):
+        T = Ts[tt]
+        K = Ks[rbfs]
+        dk = np.linspace(0, 1, K)
+        dt = np.linspace(0, 1, T)
+        big_psi = np.zeros((D * T, D * K))
+        for ii in range(T):  # number of sequence
+            for kk in range(K):
+                b_t_x = get_GausRBF(dt[ii], dk[kk], primitive_variance, D)
+                # b_t_y = get_GausRBF(z_y[ii], primitive_mean, primitive_variance, D)
+                # b_t_o = get_GausRBF(z_psi[ii], primitive_mean, primitive_variance, D)
+                # b_t_vx = get_GausRBF(z_vx[ii], primitive_mean, primitive_variance, D)
+                # b_t_vy = get_GausRBF(z_vy[ii], primitive_mean, primitive_variance, D)
+                small_psi = np.identity(D)
+                # np.fill_diagonal(small_psi, [b_t_x, b_t_y, b_t_o, b_t_vx, b_t_vy])
+                np.fill_diagonal(small_psi, [b_t_x, b_t_x, b_t_x, b_t_x, b_t_x])
+                # np.fill_diagonal(small_psi, [b_t_x])
+                big_psi[ii * D:(ii + 1) * D, kk * D:(kk + 1) * D] = np.copy(small_psi)
+        #print("Big Psi shape: ", big_psi.shape)
+        big_psi_list.append(np.copy(big_psi))
+        kt_index.append([T, K])
+print("length of Big Psi list: ", len(big_psi_list))
 
 def weight_gen(seg_range,x,y,vx,vy,psi,big_psi, plot = False, calc_accuracy = False):
     #equation 11
     list_ww = []
 
-    alphas = [1e-9, 1e-11, 1e-13]
-    sum_RMSE = np.zeros((primitive_variance.shape[0] * len(alphas), 7))
+    #alphas = [1e-9, 1e-11, 1e-13]
+    #sum_RMSE = np.zeros((primitive_variance.shape[0] * len(alphas), 7))
+    sum_RMSE = np.zeros((len(Ts) * len(Ks), 7))
     for seg_idx in range(len(seg_range)):
     #for seg_idx in range(1):
         Trajectory = []
@@ -302,31 +315,34 @@ def weight_gen(seg_range,x,y,vx,vy,psi,big_psi, plot = False, calc_accuracy = Fa
         path_gen_vy = scipy.interpolate.interp1d(t_steps, seg_vy)
         path_gen_psi = scipy.interpolate.interp1d(t_steps, seg_psi)
 
-        z_x = np.zeros(T)
-        z_y = np.zeros(T)
-        z_vx = np.zeros(T)
-        z_vy = np.zeros(T)
-        z_psi = np.zeros(T)
-        for t in range(T):
-            z_x[t] = path_gen_x(dt[t])
-            z_y[t] = path_gen_y(dt[t])
-            z_vx[t] = path_gen_vx(dt[t])
-            z_vy[t] = path_gen_vy(dt[t])
-            z_psi[t] = path_gen_psi(dt[t])
-            Trajectory.append(z_x[t])
-            Trajectory.append(z_y[t])
-            Trajectory.append(z_psi[t])
-            Trajectory.append(z_vx[t])
-            Trajectory.append(z_vy[t])
-
-        Trajectory = np.array(Trajectory)
-        #alpha = 1e-11 #from promp papaer from france
-        #alpha = 1e-7
-        #alpha = 0
         list_RMSE = []
-        for i in range(len(big_psi_list)):
-            for j in range(len(alphas)):
-                alpha = alphas[j]
+        for rbfs in range(len(Ks)):
+            for tt in range(len(Ts)):
+                T = Ts[tt]
+                K = Ks[rbfs]
+                z_x = np.zeros(T)
+                z_y = np.zeros(T)
+                z_vx = np.zeros(T)
+                z_vy = np.zeros(T)
+                z_psi = np.zeros(T)
+                Trajectory = []
+                for t in range(T):
+                    z_x[t] = path_gen_x(dt[t])
+                    z_y[t] = path_gen_y(dt[t])
+                    z_vx[t] = path_gen_vx(dt[t])
+                    z_vy[t] = path_gen_vy(dt[t])
+                    z_psi[t] = path_gen_psi(dt[t])
+                    Trajectory.append(z_x[t])
+                    Trajectory.append(z_y[t])
+                    Trajectory.append(z_psi[t])
+                    Trajectory.append(z_vx[t])
+                    Trajectory.append(z_vy[t])
+
+                Trajectory = np.array(Trajectory)
+                alpha = 1e-13
+                i = rbfs* len(Ts)+ tt
+                #print(i)
+                #for i in range(len(big_psi_list)):
                 big_psi_t = big_psi_list[i]
                 ww =get_Ridge_Refression (big_psi_t, Trajectory, alpha)
                 # list_psi.append(np.copy(big_psi))
@@ -361,7 +377,8 @@ def weight_gen(seg_range,x,y,vx,vy,psi,big_psi, plot = False, calc_accuracy = Fa
                     RMSE_vx = np.sqrt(sum(diff_vx**(2))/T)
                     RMSE_vy= np.sqrt(sum(diff_vy ** (2))/T)
                     #print("Primitive variance", primitive_variance, " RMSE accuracy", RMSE_x, RMSE_y, RMSE_psi, RMSE_vx, RMSE_vy)
-                    list_RMSE.append([RMSE_x, RMSE_y, RMSE_psi, RMSE_vx, RMSE_vy, primitive_variance[i],alphas[j]])
+                    #list_RMSE.append([RMSE_x, RMSE_y, RMSE_psi, RMSE_vx, RMSE_vy, primitive_variance[i],alphas[j]])
+                    list_RMSE.append([RMSE_x, RMSE_y, RMSE_psi, RMSE_vx, RMSE_vy, K, T])
 
         list_RMSE= np.array(list_RMSE)
         sum_RMSE[:,0:5] += list_RMSE[:,0:5]
@@ -387,7 +404,7 @@ def weight_gen(seg_range,x,y,vx,vy,psi,big_psi, plot = False, calc_accuracy = Fa
     return sum_RMSE
 
 #clustering
-sum_RMSE = np.zeros((primitive_variance.shape[0]*3, 7))
+sum_RMSE = np.zeros((len(Ks)*len(Ts), 7))
 totalsegment= 0
 for i in range(len(seg_ranges)):
     list_RMSE = weight_gen(seg_ranges[i], train_x[i], train_y[i], train_vx[i], train_vy[i], train_psi[i], big_psi, plot = False, calc_accuracy=True)
@@ -399,26 +416,26 @@ min_all_pos = np.argmin(mean_RMSE,0)
 minimum_x = mean_RMSE[min_all_pos[0],0]
 min_x_var = list_RMSE[min_all_pos[0], 5]
 min_x_alpha = list_RMSE[min_all_pos[0], 6]
-print("Minimum x primitive variance =",  min_x_var, " Minimum x regression lambda =",  min_x_alpha," Minimum x RMSE =",  minimum_x )
-minimum_y = mean_RMSE[min_all_pos[1],0]
+print("Minimum x K =",  min_x_var, " Minimum x T =",  min_x_alpha," Minimum x RMSE =",  minimum_x )
+minimum_y = mean_RMSE[min_all_pos[1],1]
 min_y_var = list_RMSE[min_all_pos[1], 5]
 min_y_alpha = list_RMSE[min_all_pos[1], 6]
-print("Minimum y primitive variance =",  min_y_var, " Minimum y regression lambda =",  min_y_alpha," Minimum y RMSE =",  minimum_y )
-minimum_psi = mean_RMSE[min_all_pos[2],0]
+print("Minimum y K =",  min_y_var, " Minimum y T =",  min_y_alpha," Minimum y RMSE =",  minimum_y )
+minimum_psi = mean_RMSE[min_all_pos[2],2]
 min_psi_var = list_RMSE[min_all_pos[2], 5]
 min_psi_alpha = list_RMSE[min_all_pos[2], 6]
-print("Minimum psi primitive variance =",  min_psi_var, " Minimum psi regression lambda =",  min_psi_alpha," Minimum psi RMSE =",  minimum_psi )
-minimum_vx = mean_RMSE[min_all_pos[3],0]
+print("Minimum psi K =",  min_psi_var, " Minimum psi T =",  min_psi_alpha," Minimum psi RMSE =",  minimum_psi )
+minimum_vx = mean_RMSE[min_all_pos[3],3]
 min_vx_var = list_RMSE[min_all_pos[3], 5]
 min_vx_alpha = list_RMSE[min_all_pos[3], 6]
-print("Minimum vx primitive variance =",  min_vx_var, " Minimum vx regression lambda =",  min_vx_alpha," Minimum vx RMSE =",  minimum_vx )
-minimum_vy = mean_RMSE[min_all_pos[4],0]
+print("Minimum vx K =",  min_vx_var, " Minimum vx T =",  min_vx_alpha," Minimum vx RMSE =",  minimum_vx )
+minimum_vy = mean_RMSE[min_all_pos[4],4]
 min_vy_var = list_RMSE[min_all_pos[4], 5]
 min_vy_alpha = list_RMSE[min_all_pos[4], 6]
-print("Minimum vy primitive variance =",  min_vy_var, " Minimum vy regression lambda =",  min_vy_alpha," Minimum vy RMSE =",  minimum_vy )
+print("Minimum vy K =",  min_vy_var, " Minimum vy T =",  min_vy_alpha," Minimum vy RMSE =",  minimum_vy )
 
 mean_RMSE[:,5:7]= list_RMSE[:,5:7]
-np.savetxt("gridsearch.csv", mean_RMSE, delimiter=",")
+np.savetxt("gridsearch_KT.csv", mean_RMSE, delimiter=",")
 
 # with open("gridsearch.csv", 'w') as wid:
 #     for i in range(mean_RMSE.shape[0]):
