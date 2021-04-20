@@ -33,13 +33,16 @@ class Traj:
         self.vx_vals = []
         self.vy_vals = []
         self.psi_vals = []
-        # self.dx   --deviation in x    
+
+        self.interact_with = {}
+        # self.dx   --deviation in x
 
     def __str__(self):
         string = "Track: track_id=" + str(self.track_id) + ", agent_type=" + str(self.agent_type) + \
                ", length=" + str(self.length) + ", width=" + str(self.width) + \
                ", interaction=" + str(self.interaction) + ", bezier_point_count=" + str(len(self.traj_bez)) + \
-               ", entrance_id=" +str(self.entrance_id) + ", exit_id=" + str(self.exit_id) + "\n"
+               ", entrance_id=" +str(self.entrance_id) + ", exit_id=" + str(self.exit_id) + ", interact_with=" + str(self.interact_with) + "\n"
+        return string
 
 class MotionState:
     def __init__(self, time_stamp_ms):

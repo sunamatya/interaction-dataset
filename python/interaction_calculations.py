@@ -9,7 +9,7 @@ from utils import dataset_types
 from utils import dict_utils
 
 
-DISTANCE_TH = 10   # Distance threshold that classifies an interaction
+DISTANCE_TH = 10.0   # Distance threshold that classifies an interaction
 
 def init_active_cars(active_cars, iter, timestamp_min, track_dictionary):
     for key, track in dict_utils.get_item_iterator(track_dictionary):
@@ -45,6 +45,15 @@ def update_active_cars(active_cars, curr_car_id, car_iter, track_dictionary,time
     # DEBUG print("updated active cars: %d" % (len(active_cars)))
     return curr_car_id, active_cars
 
+def add_interaction(track1, track2, traj_dictionary, timestamp):
+    if track1 in traj_dictionary[track2].interact_with.keys():
+        interaction_list = traj_dictionary[track2].interact_with[track1]
+    else:
+        interaction_list = []
+    interaction_list.append(timestamp)
+    traj_dictionary[track2].interact_with[track1] = interaction_list
+
+
 
 def check_distances(active_cars, traj_dictionary, timestamp):
     # DEBUG print("CHECKING DISTANCES: length %d" % (len(active_cars)))
@@ -55,8 +64,13 @@ def check_distances(active_cars, traj_dictionary, timestamp):
             d = distance_formula(car1, car2, timestamp)
             # DEBUG print("--Comparing %d and %d at distance: %f" % (car1.track_id, car2.track_id, d))
             if d <= DISTANCE_TH:
-               traj_dictionary[car1.track_id].interaction = True 
-               traj_dictionary[car2.track_id].interaction = True
+                traj_dictionary[car1.track_id].interaction = True
+                traj_dictionary[car2.track_id].interaction = True
+                add_interaction(car1.track_id, car2.track_id, traj_dictionary, timestamp)
+                add_interaction(car2.track_id, car1.track_id, traj_dictionary, timestamp)
+
+
+
 
 def calculate_interactions(track_dictionary, traj_dictionary):
     timestamp_min = 1e9
@@ -93,11 +107,25 @@ def calculate_interactions(track_dictionary, traj_dictionary):
 
 # FOR TESTING ONLY 
 if __name__ == "__main__":
-    track_file_name = "../recorded_trackfiles/Scenario4/vehicle_tracks_000.csv"
+    track_file_name = "../recorded_trackfiles/Scenario4/vehicle_tracks_001.csv"
     track_dictionary = dataset_reader.read_tracks(track_file_name)
     
-    file_path = "../trajectory_files/Scenario4/vehicle_tracks_000_trajs.pickle"
+    file_path = "../trajectory_files/Scenario4/vehicle_tracks_001_trajs.pickle"
     with open(file_path, 'rb') as handle:
             traj_dict = pickle.load(handle)
 
-    calculate_interactions(track_dictionary, traj_dict)
+    for key,val in traj_dict.items():
+        if not hasattr(val, 'interact_with'):
+            val.interact_with = {}
+
+    traj_dict = calculate_interactions(track_dictionary, traj_dict)
+
+    output_file_path = "../trajectory_files/Scenario4/vehicle_tracks_001_trajs_int.pickle"
+    #output_file_path = "../trajectory_files/Scenario4/vehicle_tracks_001_trajs_active.pickle"
+    with open(output_file_path, 'wb') as handle:
+        pickle.dump(traj_dict, handle, pickle.HIGHEST_PROTOCOL)
+
+    print(len(traj_dict))
+
+    for key, val in traj_dict.items():
+        print("Track ", key, ": ", val.interact_with)

@@ -129,7 +129,7 @@ def calculate_traj(car):
         curr_traj.y_vals = np.append(curr_traj.y_vals, car.motion_states[state].y)
         curr_traj.vx_vals = np.append(curr_traj.vx_vals, car.motion_states[state].vx)
         curr_traj.vy_vals = np.append(curr_traj.vy_vals, car.motion_states[state].vy)
-        curr_traj.psi_vals = np.append(curr_traj.vy_vals, car.motion_states[state].psi_rad)
+        curr_traj.psi_vals = np.append(curr_traj.psi_vals, car.motion_states[state].psi_rad)
 
     err, curr_traj.traj_bez = bezier.bezier_points([curr_traj.x_vals, curr_traj.y_vals])
     curr_traj.bez_xvals, curr_traj.bez_yvals = bezier.bezier_curve(curr_traj.traj_bez)
