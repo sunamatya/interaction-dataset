@@ -15,6 +15,7 @@ from GT_primitive_primary import get_Ridge_Refression
 
 from fastdtw import fastdtw
 from scipy.spatial.distance import euclidean
+T = 20
 K = 80
 D = 5
 
@@ -748,15 +749,15 @@ if __name__ == "__main__":
     trained_traj_mid = np.dot(big_psi_mid_mean, mean_mid_ww)
     trained_traj_exit = np.dot(big_psi_exit_mean, mean_exit_ww)
 
-    plot_tester_diff_alpha = False
+    plot_tester_diff_alpha = True
     if plot_tester_diff_alpha:
         # for j in range(len(list_ent_ww)):
         #     # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
         #     traj_all = np.dot(big_psi_ent_mean, list_ent_ww[j])
         #     plt.plot(traj_all[0:T * D:D], "--", color="#ff6a6a", linewidth=2.0)
         #     # plt.show()
-        plt.plot(trained_traj_ent[0:T * D:D], trained_traj_ent[1:T * D:D], 'bx', label="Primtive ", linewidth=2.0)
-        plt.plot(trained_traj_ent_15[0:T * D:D],  trained_traj_ent_15[1:T * D:D], 'ro', label="mod ", linewidth=2.0)
+        plt.plot(trained_traj_ent[0:len(trained_traj_ent):D], trained_traj_ent[1:len(trained_traj_ent) :D], 'bx', label="Primtive ", linewidth=2.0)
+        plt.plot(trained_traj_ent_15[0:len(trained_traj_ent): D],  trained_traj_ent_15[1:len(trained_traj_ent):D], 'ro', label="mod ", linewidth=2.0)
     plt.show()
 
     weight_var_init = 0.2 * 0.2
@@ -774,7 +775,7 @@ if __name__ == "__main__":
         temp = np.expand_dims(state - weight_mean, 1)
         weights_covar = (demo_idx / (demo_idx + 1)) * weights_covar + (
                     demo_idx / (demo_idx + 1) ** 2) * temp * temp.T  # eq4
-    mean_ent_ww = weight_mean
+    #mean_ent_ww = weight_mean
     sigma_ent_ww = weights_covar
 
     weight_mean = list_mid_ww[0]
@@ -785,7 +786,7 @@ if __name__ == "__main__":
         temp = np.expand_dims(state - weight_mean, 1)
         weights_covar = (demo_idx / (demo_idx + 1)) * weights_covar + (
                     demo_idx / (demo_idx + 1) ** 2) * temp * temp.T  # eq4
-    mean_mid_ww = weight_mean
+    #mean_mid_ww = weight_mean
     sigma_mid_ww = weights_covar
 
     weight_mean = list_exit_ww[0]
@@ -796,24 +797,24 @@ if __name__ == "__main__":
         temp = np.expand_dims(state - weight_mean, 1)
         weights_covar = (demo_idx / (demo_idx + 1)) * weights_covar + (
                     demo_idx / (demo_idx + 1) ** 2) * temp * temp.T  # eq4
-    mean_exit_ww = weight_mean
+    #mean_exit_ww = weight_mean
     sigma_exit_ww = weights_covar
 
 
 
 
-    plot_wts_mn_cluster = False
+    plot_wts_mn_cluster = True
     if plot_wts_mn_cluster:
         trained_traj_upper = ((np.dot(np.dot(big_psi_ent_mean, sigma_ent_ww), big_psi_ent_mean.T)).diagonal()) * 1  # + trained_traj
         for j in range(len(list_ent_ww)):
             # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
             traj_all = np.dot(big_psi_ent_mean, list_ent_ww[j])
-            plt.plot(traj_all[0:T * D:D], "--", color="#ff6a6a", linewidth=2.0)
+            plt.plot(traj_all[0:len(trained_traj_ent):D], "--", color="#ff6a6a", linewidth=2.0)
             # plt.show()
-        plt.plot(trained_traj_ent[0:T * D:D], color="b", label="Primtive ", linewidth=2.0)
-        plt.plot(np.sqrt(trained_traj_upper[0:T * D:D]) + trained_traj_ent[0:T * D:D], color="g", label="Upper SD ",
+        plt.plot(trained_traj_ent[0:len(trained_traj_ent):D], color="b", label="Primtive ", linewidth=2.0)
+        plt.plot(np.sqrt(trained_traj_upper[0:len(trained_traj_ent):D]) + trained_traj_ent[0:len(trained_traj_ent):D], color="g", label="Upper SD ",
                  linewidth=2.0)
-        plt.plot(-np.sqrt(trained_traj_upper[0:T * D:D]) + trained_traj_ent[0:T * D:D], color="m", label="Lower SD ",
+        plt.plot(-np.sqrt(trained_traj_upper[0:len(trained_traj_ent):D]) + trained_traj_ent[0:len(trained_traj_ent):D], color="m", label="Lower SD ",
                  linewidth=2.0)
         plt.legend()
         plt.title("Observation, Mean and Standard Deviation of X state segments for Cluster 0")
@@ -824,12 +825,12 @@ if __name__ == "__main__":
         for j in range(len(list_ent_ww)):
             # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
             traj_all = np.dot(big_psi_ent_mean, list_ent_ww[j])
-            plt.plot(traj_all[1:T * D:D], "--", color="#ff6a6a", linewidth=2.0)
+            plt.plot(traj_all[1:len(trained_traj_ent):D], "--", color="#ff6a6a", linewidth=2.0)
             # plt.show()
-        plt.plot(trained_traj_ent[1:T * D:D], color="b", label="Primtive ", linewidth=2.0)
-        plt.plot(np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_ent[1:T * D:D], color="g", label="Upper SD ",
+        plt.plot(trained_traj_ent[1:len(trained_traj_ent):D], color="b", label="Primtive ", linewidth=2.0)
+        plt.plot(np.sqrt(trained_traj_upper[1:len(trained_traj_ent):D]) + trained_traj_ent[1:len(trained_traj_ent):D], color="g", label="Upper SD ",
                  linewidth=2.0)
-        plt.plot(-np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_ent[1:T * D:D], color="m", label="Lower SD ",
+        plt.plot(-np.sqrt(trained_traj_upper[1:len(trained_traj_ent):D]) + trained_traj_ent[1:len(trained_traj_ent):D], color="m", label="Lower SD ",
                  linewidth=2.0)
         plt.legend()
         plt.title("Observation, Mean and Standard Deviation of Y state segments for Cluster 0")
@@ -840,12 +841,12 @@ if __name__ == "__main__":
         for j in range(len(list_mid_ww)):
             # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
             traj_all = np.dot(big_psi_mid_mean, list_mid_ww[j])
-            plt.plot(traj_all[0:T * D:D], "--", color="#ff6a6a", linewidth=2.0)
+            plt.plot(traj_all[0:len(trained_traj_mid):D], "--", color="#ff6a6a", linewidth=2.0)
             # plt.show()
-        plt.plot(trained_traj_mid[0:T * D:D], color="b", label="Primtive ", linewidth=2.0)
-        plt.plot(np.sqrt(trained_traj_upper[0:T * D:D]) + trained_traj_mid[0:T * D:D], color="g", label="Upper SD ",
+        plt.plot(trained_traj_mid[0:len(trained_traj_mid):D], color="b", label="Primtive ", linewidth=2.0)
+        plt.plot(np.sqrt(trained_traj_upper[0:len(trained_traj_mid):D]) + trained_traj_mid[0:len(trained_traj_mid):D], color="g", label="Upper SD ",
                  linewidth=2.0)
-        plt.plot(-np.sqrt(trained_traj_upper[0:T * D:D]) + trained_traj_mid[0:T * D:D], color="m", label="Lower SD ",
+        plt.plot(-np.sqrt(trained_traj_upper[0:len(trained_traj_mid):D]) + trained_traj_mid[0:len(trained_traj_mid):D], color="m", label="Lower SD ",
                  linewidth=2.0)
         plt.legend()
         plt.title("Observation, Mean and Standard Deviation of X state segments for Cluster 1")
@@ -855,12 +856,12 @@ if __name__ == "__main__":
         for j in range(len(list_mid_ww)):
             # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
             traj_all = np.dot(big_psi_mid_mean, list_mid_ww[j])
-            plt.plot(traj_all[1:T * D:D], "--", color="#ff6a6a", linewidth=2.0)
+            plt.plot(traj_all[1:len(trained_traj_mid):D], "--", color="#ff6a6a", linewidth=2.0)
             # plt.show()
-        plt.plot(trained_traj_mid[1:T * D:D], color="b", label="Primtive ", linewidth=2.0)
-        plt.plot(np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_mid[1:T * D:D], color="g", label="Upper SD ",
+        plt.plot(trained_traj_mid[1:len(trained_traj_mid):D], color="b", label="Primtive ", linewidth=2.0)
+        plt.plot(np.sqrt(trained_traj_upper[1:len(trained_traj_mid):D]) + trained_traj_mid[1:len(trained_traj_mid):D], color="g", label="Upper SD ",
                  linewidth=2.0)
-        plt.plot(-np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_mid[1:T * D:D], color="m", label="Lower SD ",
+        plt.plot(-np.sqrt(trained_traj_upper[1:len(trained_traj_mid):D]) + trained_traj_mid[1:len(trained_traj_mid):D], color="m", label="Lower SD ",
                  linewidth=2.0)
         plt.legend()
         plt.title("Observation, Mean and Standard Deviation of Y state segments for Cluster 1")
@@ -870,12 +871,12 @@ if __name__ == "__main__":
         for j in range(len(list_exit_ww)):
             # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
             traj_all = np.dot(big_psi_exit_mean, list_exit_ww[j])
-            plt.plot(traj_all[0:T * D:D], "--", color="#ff6a6a", linewidth=2.0)
+            plt.plot(traj_all[0:len(trained_traj_exit):D], "--", color="#ff6a6a", linewidth=2.0)
             # plt.show()
-        plt.plot(trained_traj_exit[0:T * D:D], color="b", label="Primtive ", linewidth=2.0)
-        plt.plot(np.sqrt(trained_traj_upper[0:T * D:D]) + trained_traj_exit[0:T * D:D], color="g", label="Upper SD ",
+        plt.plot(trained_traj_exit[0:len(trained_traj_exit):D], color="b", label="Primtive ", linewidth=2.0)
+        plt.plot(np.sqrt(trained_traj_upper[0:len(trained_traj_exit):D]) + trained_traj_exit[0:len(trained_traj_exit):D], color="g", label="Upper SD ",
                  linewidth=2.0)
-        plt.plot(-np.sqrt(trained_traj_upper[0:T * D:D]) + trained_traj_exit[0:T * D:D], color="m", label="Lower SD ",
+        plt.plot(-np.sqrt(trained_traj_upper[0:len(trained_traj_exit):D]) + trained_traj_exit[0:len(trained_traj_exit):D], color="m", label="Lower SD ",
                  linewidth=2.0)
         plt.legend()
         plt.title("Observation, Mean and Standard Deviation of X state segments for Cluster 2")
@@ -885,18 +886,86 @@ if __name__ == "__main__":
         for j in range(len(list_exit_ww)):
             # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
             traj_all = np.dot(big_psi_exit_mean, list_exit_ww[j])
-            plt.plot(traj_all[1:T * D:D], "--", color="#ff6a6a", linewidth=2.0)
+            plt.plot(traj_all[1:len(trained_traj_exit):D], "--", color="#ff6a6a", linewidth=2.0)
             # plt.show()
-        plt.plot(trained_traj_exit[1:T * D:D], color="b", label="Primtive ", linewidth=2.0)
-        plt.plot(np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_exit[1:T * D:D], color="g", label="Upper SD ",
+        plt.plot(trained_traj_exit[1:len(trained_traj_exit):D], color="b", label="Primtive ", linewidth=2.0)
+        plt.plot(np.sqrt(trained_traj_upper[1:len(trained_traj_exit):D]) + trained_traj_exit[1:len(trained_traj_exit):D], color="g", label="Upper SD ",
                  linewidth=2.0)
-        plt.plot(-np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_exit[1:T * D:D], color="m", label="Lower SD ",
+        plt.plot(-np.sqrt(trained_traj_upper[1:len(trained_traj_exit):D]) + trained_traj_exit[1:len(trained_traj_exit):D], color="m", label="Lower SD ",
                  linewidth=2.0)
         plt.legend()
         plt.title("Observation, Mean and Standard Deviation of Y state segments for Cluster 2")
         plt.show()
         plt.figure()
 
+
+    plot_wts_mn_traj_cluster = True
+    if plot_wts_mn_traj_cluster:
+        trained_traj_upper = ((np.dot(np.dot(big_psi_ent_mean, sigma_ent_ww), big_psi_ent_mean.T)).diagonal()) * 1  # + trained_traj
+        for j in range(len(list_ent_ww)):
+            # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
+            traj_all = np.dot(big_psi_ent_mean, list_ent_ww[j])
+            plt.plot(traj_all[0:len(trained_traj_ent):D], traj_all[1:len(trained_traj_ent):D], "--", color="#ff6a6a", linewidth=2.0)
+            # plt.show()
+        plt.plot(trained_traj_ent[0:len(trained_traj_ent):D], trained_traj_ent[1:len(trained_traj_ent):D], color="b", label="Primtive ", linewidth=2.0)
+        # plt.plot(np.sqrt(trained_traj_upper[0:T * D:D]) + trained_traj_ent[0:T * D:D], np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_ent[1:T * D:D], color="g", label="Upper SD ",
+        #          linewidth=2.0)
+        # plt.plot(-np.sqrt(trained_traj_upper[0:T * D:D]) + trained_traj_ent[0:T * D:D], color="m", label="Lower SD ",
+        #          linewidth=2.0)
+
+
+        trained_traj_upper = ((np.dot(np.dot(big_psi_mid_mean, sigma_mid_ww), big_psi_mid_mean.T)).diagonal()) * 1  # + trained_traj
+        for j in range(len(list_mid_ww)):
+            # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
+            traj_all = np.dot(big_psi_mid_mean, list_mid_ww[j])
+            plt.plot(traj_all[0:len(trained_traj_mid):D], traj_all[1:len(trained_traj_mid):D], "--", color="#ff6a6a", linewidth=2.0)
+            # plt.show()
+        plt.plot(trained_traj_mid[0:len(trained_traj_ent):D], trained_traj_mid[1:len(trained_traj_ent):D], color="c", label="Primtive ", linewidth=2.0)
+        # plt.plot(np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_mid[1:T * D:D], color="g", label="Upper SD ",
+        #          linewidth=2.0)
+        # plt.plot(-np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_mid[1:T * D:D], color="m", label="Lower SD ",
+        #          linewidth=2.0)
+        # plt.legend()
+        # plt.title("Observation, Mean and Standard Deviation of Y state segments for Cluster 1")
+        # plt.show()
+
+        trained_traj_upper = ((np.dot(np.dot(big_psi_exit_mean, sigma_exit_ww), big_psi_exit_mean.T)).diagonal()) * 1  # + trained_traj
+        for j in range(len(list_exit_ww)):
+            # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
+            traj_all = np.dot(big_psi_exit_mean, list_exit_ww[j])
+            plt.plot(traj_all[0:len(trained_traj_exit):D],traj_all[1:len(trained_traj_exit):D], "--", color="#ff6a6a", linewidth=2.0)
+            # plt.show()
+        plt.plot(trained_traj_exit[0:len(trained_traj_exit):D], trained_traj_exit[1:len(trained_traj_exit):D], color="g", label="Primtive ", linewidth=2.0)
+        # plt.plot(np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_exit[1:T * D:D], color="g", label="Upper SD ",
+        #          linewidth=2.0)
+        # plt.plot(-np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_exit[1:T * D:D], color="m", label="Lower SD ",
+        #          linewidth=2.0)
+        plt.legend()
+        plt.title("Observation, Mean of X-Y state segments with average cluster real time data")
+
+        plot_real_data= True
+        if plot_real_data:
+            for i in range(len(test_x)):
+                plt.plot(test_x[i], test_y[i], "--",  color="y")
+
+        plt.show()
+
+
+        # trained_traj_upper = ((np.dot(np.dot(big_psi_ent_mean, sigma_ent_ww), big_psi_ent_mean.T)).diagonal()) * 1  # + trained_traj
+        # for j in range(len(list_ent_ww)):
+        #     # ax1.plot(trained_traj[0:T * D:D], color="b", label="Primtive x", linewidth=2.0)
+        #     traj_all = np.dot(big_psi_ent_mean, list_ent_ww[j])
+        #     plt.plot(traj_all[1:T * D:D], "--", color="#ff6a6a", linewidth=2.0)
+        #     # plt.show()
+        # plt.plot(trained_traj_ent[1:T * D:D], color="b", label="Primtive ", linewidth=2.0)
+        # plt.plot(np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_ent[1:T * D:D], color="g", label="Upper SD ",
+        #          linewidth=2.0)
+        # plt.plot(-np.sqrt(trained_traj_upper[1:T * D:D]) + trained_traj_ent[1:T * D:D], color="m", label="Lower SD ",
+        #          linewidth=2.0)
+        # plt.legend()
+        # plt.title("Observation, Mean and Standard Deviation of Y state segments for Cluster 0")
+        # plt.show()
+        # plt.figure()
     #reconstruction of the vehicle for testing
     obs_traj= []
     obs_data_len = 50
@@ -940,15 +1009,20 @@ if __name__ == "__main__":
 
         ###################dtw data#############333
         obs_traj = np.array(obs_traj)
-        big_psi_ent_mean, _ = generate_psi_dt_ts(20, 1)
-        _, inferred_traj = compute_phi_index_obs_dtw(obs_traj,big_psi_ent_mean,mean_ent_ww, sigma_ent_ww)
+        #big_psi_ent_mean, _ = generate_psi_dt_ts(20, 1)
+        #_, inferred_traj = compute_phi_index_obs_dtw(obs_traj,big_psi_ent_mean,mean_ent_ww, sigma_ent_ww)
         #plt.plot(obs_traj[0:obs_data_len*D: D],obs_traj[1:obs_data_len*D:D], 'ro')
 
         plt.plot(test_x[i], test_y[i], 'g')
-        inferred_traj_len = int(len(inferred_traj)/D)
-        inferred_traj_mp1 = np.dot(big_psi_ent_mean,mean_ent_ww)
-        inferred_traj_mp2 = np.dot(big_psi_mid_mean, mean_mid_ww)
-        inferred_traj_mp3 = np.dot(big_psi_exit_mean, mean_exit_ww)
+        #inferred_traj_len = int(len(inferred_traj)/D)
+        # inferred_traj_mp1 = np.dot(big_psi_ent_mean,mean_ent_ww)
+        # inferred_traj_mp2 = np.dot(big_psi_mid_mean, mean_mid_ww)
+        # inferred_traj_mp3 = np.dot(big_psi_exit_mean, mean_exit_ww)
+
+
+        inferred_traj_mp1 = np.copy(trained_traj_ent)
+        inferred_traj_mp2 = np.copy(trained_traj_mid)
+        inferred_traj_mp3 = np.copy(trained_traj_exit)
 
         inferred_traj_mp1_len= int(len(inferred_traj_mp1)/D)
         inferred_traj_mp2_len = int(len(inferred_traj_mp2) / D)
@@ -956,12 +1030,12 @@ if __name__ == "__main__":
         # #plt.plot(trained_traj_ent[0:obs_data_len*D: D],trained_traj_ent [1:obs_data_len*D:D], 'ro' )
         # #plt.plot()
         plt.plot(obs_traj[0:obs_data_len*D: D],obs_traj[1:obs_data_len*D:D], 'ro')
-        plt.plot(inferred_traj[0:obs_data_len*D: D], inferred_traj[1: obs_data_len*D: D], 'bo')
+        #plt.plot(inferred_traj[0:obs_data_len*D: D], inferred_traj[1: obs_data_len*D: D], 'bo')
         plt.plot(inferred_traj_mp1[0:inferred_traj_mp1_len*D: D], inferred_traj_mp1[1: inferred_traj_mp1_len*D: D], 'yo')
         plt.plot(inferred_traj_mp2[0:inferred_traj_mp2_len * D: D], inferred_traj_mp2[1: inferred_traj_mp2_len * D: D],
                  'co')
-        # plt.plot(inferred_traj_mp3[0:inferred_traj_mp3_len * D: D], inferred_traj_mp1[1: inferred_traj_mp3_len * D: D],
-        #          'mo')
+        plt.plot(inferred_traj_mp3[0:inferred_traj_mp3_len * D: D], inferred_traj_mp1[1: inferred_traj_mp3_len * D: D],
+                 'mo')
 
         #plt.plot(inferred_traj[0:obs_data_len*D: D],inferred_traj[1:obs_data_len*D:D], 'bo')
         plt.show()

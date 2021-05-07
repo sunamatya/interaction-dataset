@@ -82,6 +82,8 @@ def dynamics_frenet(X, u):
     X = np.matmul(A, X) + np.matmul(B, u)
     return X
 
+def Reverse(lst):
+    return [ele for ele in reversed(lst)]
 
 def get_primitive(train_x, train_y, train_psi, train_vx, train_vy):
     T = 20  # number of timesteps
@@ -214,6 +216,22 @@ if __name__ == "__main__":
     all_x, all_y, all_vx, all_vy, all_psi = extract_dataset_traj("Scenario4", False, [3], [5], data_lim=1000)
     all_x2, all_y2, all_vx2, all_vy2, all_psi2, all_int, all_2b, all_2e = extract_dataset_traj_active("Scenario4", True,[4], [2], data_lim=100, track_id_list=[19, 107])
 
+
+
+    #####################this is from the other file
+    traj_p = []
+    with open("primitive_traj0.csv", "r") as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+    #traj = []
+        for col in csv_reader:
+            print(col[0])
+            traj_p.append(float(col[0])) #x y, theta, vx, vy
+
+    D = 5
+    traj_len = int(len(traj_p) / D) #3-5 trajectory remaining length
+
+
+
     #extract the primtive mean and variance
     # c1_mean_ent_ww, c1_mean_mid_ww, c1_mean_exit_ww, c1_sigma_ent_ww, c1_sigma_mid_ww, c1_sigma_exit_ww, gmm1 =  get_primitive(all_x, all_y, all_psi, all_vx, all_vy)
     # c2_mean_ent_ww, c2_mean_mid_ww, c2_mean_exit_ww, c2_sigma_ent_ww, c2_sigma_mid_ww, c2_sigma_exit_ww, gmm2 = get_primitive(
@@ -245,11 +263,15 @@ if __name__ == "__main__":
         active_start = active_2b[0]
         base_timestamp1 = ptime_start
         base_timestamp2 = active_start
+        #ptime_third= active_b[0]+ int(((active_e[0]- active_b[0])%3)*200)
+        ptime_third = active_b[0]+ int(((103/141)*(active_e[0]- active_b[0]))/100)*100
     else:
         ptime_start = active_2b[0]
         active_start = active_b[0]
         base_timestamp1 = active_start
         base_timestamp2 = ptime_start
+        #ptime_third= active_b[0]+ int(((active_e[0]- active_b[0])%3)*100)
+        ptime_third = active_b[0]+ int(((103/141)*(active_e[0]- active_b[0]))/100)*100
 
     if active_e[0] >= active_2e[0]:
         ptime_end = active_e[0]
@@ -257,7 +279,12 @@ if __name__ == "__main__":
     else:
         ptime_end = active_2e[0]
         active_end = active_e[0]
-
+    #print((103/141)*(active_e[0]- active_b[0]))
+    print((160 / 215) * (active_e[0] - active_b[0]))
+    #print((109 / 145) * (active_e[0] - active_b[0]))
+    print("ptime third", ptime_third)
+    print("ptime start", ptime_start)
+    print("active_e", active_e[0])
 
     #first car enters ( primitive)
     #second car enters (primitive ) (calculating TTC)
@@ -273,8 +300,14 @@ if __name__ == "__main__":
 
 
 
+    ptime_start = ptime_third
+    car1_states_inferred_x = []
+    car2_states_inferred_x = []
+    car1_states_inferred_y = []
+    car2_states_inferred_y = []
+    first_time_index = -1
     while ptime_start< active_end: # primitive end time
-        hascar1= False
+        hascar1= False #ego car
         hascar2= False
 
         if ptime_start in timesteps_car1:
@@ -289,7 +322,7 @@ if __name__ == "__main__":
             velocity_2 = (active_2vx[0][time_index2] ** 2 + active_2vy[0][time_index2] ** 2) ** (1 / 2)
             hascar2= True
 
-        print(hascar1, " has car ",  hascar2)
+        #print(hascar1, " has car ",  hascar2)
         ptime_start = ptime_start + 100
         nodes_removed = 0
         # when both car are present #TODO: but have to start primitive when one car enters the intersections
@@ -297,18 +330,21 @@ if __name__ == "__main__":
         if hascar1 and hascar2:
             car_length = 5.0 # we chose maximum
             TTC = np.abs((position_2- position_1-car_length)/ (velocity_1- velocity_2))
+            dist = abs(position_2- position_1)
 
 
-            print(TTC)
+
+
+            #print(TTC)
             #total_prediction= 10
-            car1_states_inferred_x = []
-            car2_states_inferred_x = []
-            car1_states_inferred_y = []
-            car2_states_inferred_y = []
 
             car_states_true= []
 
-            if TTC < 5.0:
+            if dist < 5.0:
+            #if TTC < 5.0:
+                if first_time_index< 0:
+                    first_time_index= time_index1
+                    first_time_index2= time_index2
                 horizon = 3  # time horizon
                 #total_prediction = total_prediction -1
                 ts = 0.1  # 100 ms
@@ -385,11 +421,21 @@ if __name__ == "__main__":
                                   active_vy[0][time_index1], active_psi[0][time_index1]]
                     car_state2 = [active_2x[0][time_index2], active_2y[0][time_index2], active_2vx[0][time_index2],
                                   active_2vy[0][time_index2], active_2psi[0][time_index2]]
-                    # primitive1 = [all_x[1][time_index1: time_index1+ horizon ], all_y[1][time_index1 : time_index1+ horizon]]
-                    # primitive2 = [all_x2[0][time_index2 : time_index2+ horizon], all_y2[0][time_index2 : time_index2+ horizon]]
+                    # # primitive1 = [all_x[1][time_index1: time_index1+ horizon ], all_y[1][time_index1 : time_index1+ horizon]]
+                    # # primitive2 = [all_x2[0][time_index2 : time_index2+ horizon], all_y2[0][time_index2 : time_index2+ horizon]]
+                    #
+                    # primitive1 = [all_x[1][time_index1], all_y[1][time_index1]]
+                    # primitive2 = [all_x2[0][time_index2], all_y2[0][time_index2]]
+                    primitive_index = abs((ptime_third- ptime_start)/100)/((active_e[0]-ptime_third)/100)
+                    primitive_index = int(primitive_index*traj_len)
 
-                    primitive1 = [all_x[1][time_index1], all_y[1][time_index1]]
-                    primitive2 = [all_x2[0][time_index2], all_y2[0][time_index2]]
+                    primitive1 = [traj_p[primitive_index*D],traj_p[(primitive_index*D)+1]]
+                    print(primitive_index, "primitive_index")
+                    #exit()
+                    #print("primitive data", primitive1)
+                    #primitive1 = [all_x[1][time_index1], all_y[1][time_index1]]
+                    #primitive2 = [all_x2[0][time_index2], all_y2[0][time_index2]]
+
 
                     # cost_matrix = np.zeros((5, 9, 9, 2))
                     # state_matrix_car_1= np.zeros((6,9,5))
@@ -460,11 +506,20 @@ if __name__ == "__main__":
 
                             child_node.current_states = [pred_car_1, pred_car_2]
 
-                            car_distance = ((car_state1[0] - car_state2[0]) ** 2 - (
+                            car_distance = ((car_state1[0] - car_state2[0]) ** 2 + (
                                         car_state1[1] - car_state2[1]) ** 2) ** (1 / 2)
                             # self distance from primitive
-                            change_pred1 = ((car_state1[0] - primitive1[0]) ** 2 - (car_state1[1] - primitive1[1])) ** (0.5)
-                            change_pred2 = ((car_state2[0] - primitive2[0]) ** 2 - (car_state2[1] - primitive2[1])) ** (0.5)
+                            change_pred1 = np.sqrt(((car_state1[0] - primitive1[0]) ** 2 + (car_state1[1] - primitive1[1])**2))# ** (0.5)
+                            if np.isnan(change_pred1):
+                                print(change_pred1, "pred1")
+                                print(car_state1,"car state")
+                                print(primitive1, "primitive")
+                                print(time_index1, "time")
+                                print(primitive_index, "primitive index")
+                            #print(change_pred1)
+                            #exit()
+                            #change_pred2 = ((car_state2[0] - primitive2[0]) ** 2 + (car_state2[1] - primitive2[1])**2) ** (0.5)
+                            change_pred2= 0
 
                             #find cost
                             # update child's cost and states
@@ -475,6 +530,15 @@ if __name__ == "__main__":
                             parent_cost = treedict[current_node.parent].cost
 
                             child_node.cost = [parent_cost[0]+cost1, parent_cost[1]+cost2]
+                            if np.isnan(child_node.cost[0]):
+                                print(change_pred1, "pred1")
+                                print(car_state1,"car state")
+                                print(primitive1, "primitive")
+                                print(time_index1, "time")
+                                print(primitive_index, "primitive index")
+                                print(parent_cost, "parent_cost")
+                                print(cost1)
+                                print(cost2)
                             # print("parent: ", current_node.parent)
                             # print("Level ", child_node.level)
                             # print("State ", child_node.current_states)
@@ -485,7 +549,7 @@ if __name__ == "__main__":
                             if level< (horizon-1):
                                 current_nodes_list.append(child_node)
                             else:
-                                # print(child_node.cost)
+                                #print(child_node.cost)
                                 if child_node.cost[0] < min_cost1 and child_node.cost[1] < min_cost2:
                                     best_node = child_node
                                     min_cost1, min_cost2 = child_node.cost
@@ -504,7 +568,8 @@ if __name__ == "__main__":
                     car1_states_inferred_x.append(best_node.current_states[0][0])
                     car2_states_inferred_x.append(best_node.current_states[1][0])
                     car1_states_inferred_y.append(best_node.current_states[0][1])
-                    car2_states_inferred_y.append(best_node.current_states[1][0])
+                    #car2_states_inferred_y.append(best_node.current_states[1][0])
+                    car2_states_inferred_y.append(best_node.current_states[1][1])
                     if best_node.name=="root":
                         break
                     best_node = treedict[best_node.parent]
@@ -515,15 +580,33 @@ if __name__ == "__main__":
                 print("car states inferred 1", car2_states_inferred_x, " ", car2_states_inferred_y)
 
                 plt.figure()
-                plt.plot(car1_states_inferred_x, car1_states_inferred_y, 'r')
-                plt.plot(car2_states_inferred_x, car2_states_inferred_y, 'b')
-                plt.plot(active_x[0][time_index1 : time_index1+ horizon], active_y[0][ time_index1 : time_index1+ horizon], 'g')
-                plt.plot(active_2x[0][time_index2 : time_index2+ horizon], active_2y[0][time_index2 : time_index2+ horizon],'y')
+                plt.plot(car1_states_inferred_x, car1_states_inferred_y, 'rx', label='GT inferred ego vehicle trajectory')
+
+                # plt.plot(active_x[0][time_index1 : time_index1+ horizon], active_y[0][ time_index1 : time_index1+ horizon], 'g')
+                # plt.plot(active_2x[0][time_index2 : time_index2+ horizon], active_2y[0][time_index2 : time_index2+ horizon],'y')
+
+                #plt.plot(active_2x[0][0 : time_index2+ horizon], active_2y[0][0: time_index2+ horizon],'y')
+                plt.plot(traj_p[0:(primitive_index+3)*5:5], traj_p[1:(primitive_index+3)*5:5], 'b.', label= 'primitive segment')
+                #plt.plot(active_x[0][first_time_index : time_index1+ 3], active_y[0][first_time_index: time_index1+ horizon], 'g.',  label='observed ego interacting vehicle')
+                plt.plot(active_x[0][time_index1: time_index1 + 4],
+                     active_y[0][time_index1: time_index1+4], 'g.',
+                     label='observed ego interacting vehicle')
+                #plt.plot(active_2x[0][first_time_index2 : time_index2+ 3], active_2y[0][first_time_index2: time_index2+ horizon], 'y.')
+                #plt.plot(car2_states_inferred_x, car2_states_inferred_y, 'm.')
+                plt.legend()
                 plt.show()
+                GT_pm_accuracy= True
+                if GT_pm_accuracy:
+                    diff_x = Reverse(car1_states_inferred_x[-4:]) - active_x[0][time_index1: time_index1+4]
+                    diff_y = Reverse(car1_states_inferred_y[-4:]) - active_y[0][time_index1: time_index1+4]
 
-                exit()
+                    RMSE_x = np.sqrt(sum(diff_x ** (2)) / 4)
+                    RMSE_y = np.sqrt(sum(diff_y ** (2)) / 4)
+                    print(" RMSE accuracy", RMSE_x, RMSE_y)
 
-            ptime_start = ptime_start + 100# i #
+                #exit()
+
+            ptime_start = ptime_start + 200# i #
 
 
 

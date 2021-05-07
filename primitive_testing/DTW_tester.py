@@ -14,6 +14,7 @@ from fastdtw import fastdtw
 from scipy.spatial.distance import euclidean
 
 from example_tester import extract_dataset_traj
+from example_tester import extract_dataset_traj_active
 
 
 
@@ -130,54 +131,54 @@ def generate_psi_dt_ts(T, alpha):
     print("Big Psi shape: ", big_psi.shape)
     return big_psi, dt
 
-def tester_old():
-    x = [3, 1, 2, 2, 1]
-    y = [2, 0, 0, 3, 3, 1, 0]
-    distance, warp_path = fastdtw(x, y, dist=euclidean)
-
-    cost_matrix = compute_accumulated_cost_matrix(x, y)
-
-    fig, ax = plt.subplots(figsize=(12, 8))
-    ax = sbn.heatmap(cost_matrix, annot=True, square=True, linewidths=0.1, cmap="YlGnBu", ax=ax)
-    ax.invert_yaxis()
-
-    # Get the warp path in x and y directions
-    path_x = [p[0] for p in warp_path]
-    path_y = [p[1] for p in warp_path]
-
-    # Align the path from the center of each cell
-    path_xx = [x+0.5 for x in path_x]
-    path_yy = [y+0.5 for y in path_y]
-
-    ax.plot(path_xx, path_yy, color='blue', linewidth=3, alpha=0.2)
-
-
-
-    fig, ax = plt.subplots(figsize=(14, 10))
-
-    # Remove the border and axes ticks
-    fig.patch.set_visible(False)
-    ax.axis('off')
-
-    for [map_x, map_y] in warp_path:
-        ax.plot([map_x, map_y], [x[map_x], y[map_y]], '--k', linewidth=4)
-
-    ax.plot(x, '-ro', label='x', linewidth=4, markersize=20, markerfacecolor='lightcoral', markeredgecolor='lightcoral')
-    ax.plot(y, '-bo', label='y', linewidth=4, markersize=20, markerfacecolor='skyblue', markeredgecolor='skyblue')
-    ax.set_title("DTW Distance", fontsize=28, fontweight="bold")
-
-    #fig.savefig("ex1_dtw_distance.png", **savefig_options)
-    plt.show()
-
-    #fig.savefig("ex1_heatmap.png", **savefig_options)
-
-    res = [min(i) for i in zip(*cost_matrix)][len(x)-1]
-    r, c = np.where(cost_matrix == res)
-
-    print ("phase =", (r+1)/(len(y)))
-
-    print(distance)
-    print(warp_path)
+# def tester_old():
+#     x = [3, 1, 2, 2, 1]
+#     y = [2, 0, 0, 3, 3, 1, 0]
+#     distance, warp_path = fastdtw(x, y, dist=euclidean)
+#
+#     cost_matrix = compute_accumulated_cost_matrix(x, y)
+#
+#     fig, ax = plt.subplots(figsize=(12, 8))
+#     ax = sbn.heatmap(cost_matrix, annot=True, square=True, linewidths=0.1, cmap="YlGnBu", ax=ax)
+#     ax.invert_yaxis()
+#
+#     # Get the warp path in x and y directions
+#     path_x = [p[0] for p in warp_path]
+#     path_y = [p[1] for p in warp_path]
+#
+#     # Align the path from the center of each cell
+#     path_xx = [x+0.5 for x in path_x]
+#     path_yy = [y+0.5 for y in path_y]
+#
+#     ax.plot(path_xx, path_yy, color='blue', linewidth=3, alpha=0.2)
+#
+#
+#
+#     fig, ax = plt.subplots(figsize=(14, 10))
+#
+#     # Remove the border and axes ticks
+#     fig.patch.set_visible(False)
+#     ax.axis('off')
+#
+#     for [map_x, map_y] in warp_path:
+#         ax.plot([map_x, map_y], [x[map_x], y[map_y]], '--k', linewidth=4)
+#
+#     ax.plot(x, '-ro', label='x', linewidth=4, markersize=20, markerfacecolor='lightcoral', markeredgecolor='lightcoral')
+#     ax.plot(y, '-bo', label='y', linewidth=4, markersize=20, markerfacecolor='skyblue', markeredgecolor='skyblue')
+#     ax.set_title("DTW Distance", fontsize=28, fontweight="bold")
+#
+#     #fig.savefig("ex1_dtw_distance.png", **savefig_options)
+#     plt.show()
+#
+#     #fig.savefig("ex1_heatmap.png", **savefig_options)
+#
+#     res = [min(i) for i in zip(*cost_matrix)][len(x)-1]
+#     r, c = np.where(cost_matrix == res)
+#
+#     print ("phase =", (r+1)/(len(y)))
+#
+#     print(distance)
+#     print(warp_path)
 
 def data_teter_1d():
     all_x, all_y, all_vx, all_vy, all_psi = extract_dataset_traj("Scenario4", False, [3], [5], data_lim=100)
@@ -230,13 +231,23 @@ def data_teter_1d():
 
 if __name__ == "__main__":
     all_x, all_y, all_vx, all_vy, all_psi = extract_dataset_traj("Scenario4", False, [3], [5], data_lim=100)
+    active_x, active_y, active_vx, active_vy, active_psi, active_int, active_b, active_e = extract_dataset_traj_active(
+        "Scenario4", False, [3], [5], data_lim=100, track_id_list=[37, 47, 77])  # [37,47,77]
 
     #y = all_x[1][0::10] # demonstrated trajectory
     y = [all_x[1], all_y[1]]
-    x = [all_x[2][1:40], all_y[2][1:40]] #observed trajectory
-    t_obs = 40
-    plt.plot(x[0],x[1], 'g')
-    plt.plot(y[0], y[1], 'r')
+    #x = [all_x[3][0:20], all_y[3][0:20]] #observed trajectory #non interacting trajectory
+    x = [active_x[0][0:5], active_y[0][0:5]]
+
+
+
+    t_obs = 5 #10
+    plt.figure()
+    plt.plot(x[0],x[1], 'g', label = 'Observed trajectory')
+    plt.plot(y[0], y[1], 'r', label = 'Saved trajectory')
+    plt.xlabel('x distance(m)')
+    plt.ylabel('y distance (m)')
+    plt.legend()
     plt.show()
     data_len_x = len(x[0])
     data_len_y = len(y[0])
@@ -248,6 +259,29 @@ if __name__ == "__main__":
     res = [min(i) for i in zip(*cost_matrix1)][len(x[0])-1]
     r, c = np.where(cost_matrix1 == res)
     phase = (r+1)/(len(y[0]))
-    print ("phase1 =", (r+1)/(len(y[0])))
+    print ("phase1 =", phase)
     print("total time if phase is constant = ",  t_obs/phase)
+
+    phase_prev = 0.0
+    #testing phase based on previous obervation
+    for j in range (0, len(all_x[3])-5, 5):
+       # x = [all_x[3][0:j+20], all_y[3][0:j+20]]  # observed trajectory #non interacting trajectory
+        x = [active_x[0][0:j+5], active_y[0][0:j+5]]  # observed trajectory #interacting trajectory
+
+        cost_matrix1 = compute_accumulated_cost_matrix_2D(x, y)
+        res = [min(i) for i in zip(*cost_matrix1)][len(x[0]) - 1]
+        r, c = np.where(cost_matrix1 == res)
+        phase = (r + 1) / (len(y[0]))
+        #print(r)
+
+        print("phase passed =", phase)
+        print("total time if phase is constant = ", t_obs / (phase-phase_prev))
+        phase_prev = phase
+        plt.figure()
+        plt.plot(x[0], x[1], 'g', label='Observed trajectory')
+        plt.plot(y[0], y[1], 'r', label='Saved trajectory')
+        plt.xlabel('x distance(m)')
+        plt.ylabel('y distance (m)')
+        plt.legend()
+        plt.show()
 
